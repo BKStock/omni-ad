@@ -29,7 +29,16 @@ export type {
   PlatformError,
   CampaignObjective,
   CampaignStatus,
-} from './types';
+} from './types.js';
 
-export { BaseAdapter } from './base-adapter';
-export { AdapterRegistry, adapterRegistry } from './adapter-registry';
+export { BaseAdapter } from './base-adapter.js';
+export { AdapterRegistry, adapterRegistry } from './adapter-registry.js';
+
+// Platform adapters
+export { MetaAdapter } from './meta/index.js';
+export { GoogleAdsAdapter } from './google/index.js';
+export { XAdapter } from './x/index.js';
+export { TikTokAdapter } from './tiktok/index.js';
+export { LineYahooAdapter } from './line-yahoo/index.js';
+export { AmazonAdsAdapter } from './amazon/index.js';
+export { MicrosoftAdsAdapter } from './microsoft/index.js';

@@ -1,92 +1,100 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
-import { protectedProcedure, router } from "../trpc.js";
+import {
+  getByCampaign,
+  getByPlatform,
+  getOverview,
+} from "../../services/analytics.service.js";
+import { computeAttribution } from "../../services/report.service.js";
+import { organizationProcedure, router } from "../trpc.js";
 
 const DateRangeInput = z.object({
-  startDate: z.string().datetime(),
-  endDate: z.string().datetime(),
+  startDate: z.string().min(1),
+  endDate: z.string().min(1),
 });
 
-const Platform = z.enum([
-  "google",
-  "meta",
-  "tiktok",
-  "line",
-  "x",
-  "yahoo_japan",
-]);
-
 const AttributionModel = z.enum([
+  "markov",
+  "shapley",
+  "linear",
   "last_click",
   "first_click",
-  "linear",
-  "time_decay",
-  "position_based",
-  "data_driven",
 ]);
 
+function handleServiceError(error: unknown): never {
+  throw new TRPCError({
+    code: "INTERNAL_SERVER_ERROR",
+    message: "An unexpected error occurred",
+    cause: error,
+  });
+}
+
 export const analyticsRouter = router({
-  overview: protectedProcedure
+  overview: organizationProcedure
     .input(DateRangeInput)
-    .query(({ input: _input }) => {
-      throw new TRPCError({
-        code: "METHOD_NOT_SUPPORTED",
-        message: "analytics.overview is not yet implemented",
-      });
+    .query(async ({ ctx, input }) => {
+      try {
+        return await getOverview(
+          ctx.organizationId,
+          input.startDate,
+          input.endDate,
+        );
+      } catch (error) {
+        handleServiceError(error);
+      }
     }),
 
-  byPlatform: protectedProcedure
-    .input(
-      DateRangeInput.extend({
-        platforms: z.array(Platform).optional(),
-        metrics: z
-          .array(
-            z.enum([
-              "impressions",
-              "clicks",
-              "conversions",
-              "spend",
-              "ctr",
-              "cpc",
-              "cpa",
-              "roas",
-            ])
-          )
-          .optional(),
-      })
-    )
-    .query(({ input: _input }) => {
-      throw new TRPCError({
-        code: "METHOD_NOT_SUPPORTED",
-        message: "analytics.byPlatform is not yet implemented",
-      });
+  byPlatform: organizationProcedure
+    .input(DateRangeInput)
+    .query(async ({ ctx, input }) => {
+      try {
+        return await getByPlatform(
+          ctx.organizationId,
+          input.startDate,
+          input.endDate,
+        );
+      } catch (error) {
+        handleServiceError(error);
+      }
     }),
 
-  byCampaign: protectedProcedure
+  byCampaign: organizationProcedure
     .input(
       DateRangeInput.extend({
-        campaignIds: z.array(z.string().uuid()).optional(),
         limit: z.number().int().min(1).max(100).default(20),
       })
     )
-    .query(({ input: _input }) => {
-      throw new TRPCError({
-        code: "METHOD_NOT_SUPPORTED",
-        message: "analytics.byCampaign is not yet implemented",
-      });
+    .query(async ({ ctx, input }) => {
+      try {
+        return await getByCampaign(
+          ctx.organizationId,
+          input.startDate,
+          input.endDate,
+          input.limit,
+        );
+      } catch (error) {
+        handleServiceError(error);
+      }
     }),
 
-  attribution: protectedProcedure
+  attribution: organizationProcedure
     .input(
       DateRangeInput.extend({
         model: AttributionModel.default("last_click"),
-        campaignIds: z.array(z.string().uuid()).optional(),
       })
     )
-    .query(({ input: _input }) => {
-      throw new TRPCError({
-        code: "METHOD_NOT_SUPPORTED",
-        message: "analytics.attribution is not yet implemented",
-      });
+    .query(async ({ ctx, input }) => {
+      try {
+        return await computeAttribution(
+          {
+            modelType: input.model,
+            startDate: input.startDate,
+            endDate: input.endDate,
+          },
+          ctx.organizationId,
+        );
+      } catch (error) {
+        handleServiceError(error);
+      }
     }),
 });

@@ -37,6 +37,9 @@ importers:
       '@trpc/server':
         specifier: ^11.0.0
         version: 11.16.0(typescript@5.9.3)
+      drizzle-orm:
+        specifier: ^0.38.0
+        version: 0.38.4(@types/react@19.2.14)(postgres@3.4.8)(react@19.2.4)
       fastify:
         specifier: ^5.2.0
         version: 5.8.4
@@ -147,6 +150,9 @@ importers:
       bullmq:
         specifier: ^5.30.0
         version: 5.72.0
+      drizzle-orm:
+        specifier: ^0.38.0
+        version: 0.38.4(@types/react@19.2.14)(postgres@3.4.8)(react@19.2.4)
     devDependencies:
       '@types/node':
         specifier: ^22.0.0
@@ -170,6 +176,9 @@ importers:
         specifier: ^3.24.0
         version: 3.25.76
     devDependencies:
+      '@types/node':
+        specifier: ^22.0.0
+        version: 22.19.15
       typescript:
         specifier: ^5.7.0
         version: 5.9.3

@@ -5,9 +5,9 @@ export { generateAdVideo, type VideoGenerationRequest, type GeneratedVideo } fro
 export { adaptForPlatform, type PlatformAdaptationRequest, type AdaptedCreative } from './creative/platform-adapter.js';
 
 // Budget Optimization
-export { initializeArms, updateArm, computeAllocation, type BanditArm, type BanditConfig, type AllocationResult } from './optimization/bandit.js';
+export { initializeArms, updateArm, computeAllocation, resetArm, type BanditArm, type BanditConfig, type AllocationResult } from './optimization/bandit.js';
 export { forecastRoas, simulateBudgetChange, type ForecastInput, type ForecastResult, type SimulationInput, type SimulationResult } from './optimization/forecaster.js';
-export { executeAllocationCycle, type AllocationRequest, type AllocationConstraints } from './optimization/allocator.js';
+export { executeAllocationCycle, type AllocationRequest, type AllocationConstraints, type PlatformMetricsSummary } from './optimization/allocator.js';
 
 // Attribution
 export { computeMarkovAttribution, type TouchpointSequence, type AttributionResult } from './attribution/markov.js';
@@ -17,4 +17,24 @@ export { computeShapleyAttribution, type ShapleyInput, type ShapleyResult } from
 export { generateInsights, type InsightInput, type Insight, type InsightType, type InsightSeverity } from './insights/index.js';
 
 // Creative Intelligence
-export { getCreativeRecommendations, recordPerformanceFeedback, type CreativeFeatures, type PerformanceFeedback, type CreativeRecommendation } from './creative-intelligence/index.js';
+export { getCreativeRecommendations, recordPerformanceFeedback, registerCreativeFeatures, type CreativeFeatures, type PerformanceFeedback, type CreativeRecommendation } from './creative-intelligence/index.js';
+
+// Japanese Seasonality Intelligence
+export {
+  getActiveEvents,
+  getUpcomingEvents,
+  getSeasonalMultiplier,
+  getRecommendedKeywords,
+  getRecommendedThemes,
+  type SeasonalEvent,
+  type IndustryImpact,
+  type Industry,
+} from './seasonality/japanese-calendar.js';
+
+// Compliance
+export {
+  checkCreativeCompliance,
+  type ComplianceResult,
+  type ComplianceViolation,
+  type CreativeInput,
+} from './compliance/policy-checker.js';

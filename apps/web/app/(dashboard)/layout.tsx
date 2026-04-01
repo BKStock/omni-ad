@@ -15,6 +15,7 @@ import {
   Users,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { TRPCProvider } from '@/lib/trpc-provider';
 
 interface NavItem {
   label: string;
@@ -150,7 +151,9 @@ export default function DashboardLayout({
         </header>
 
         {/* Page content */}
-        <main className="flex-1 overflow-y-auto p-4 lg:p-6">{children}</main>
+        <main className="flex-1 overflow-y-auto p-4 lg:p-6">
+          <TRPCProvider>{children}</TRPCProvider>
+        </main>
       </div>
     </div>
   );

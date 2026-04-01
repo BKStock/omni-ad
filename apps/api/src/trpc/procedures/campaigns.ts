@@ -1,128 +1,168 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
-import { protectedProcedure, router } from "../trpc.js";
+import {
+  CampaignNotFoundError,
+  createCampaign,
+  deleteCampaign,
+  deployCampaign,
+  getCampaign,
+  listCampaigns,
+  pauseCampaign,
+  resumeCampaign,
+  updateCampaign,
+} from "../../services/campaign.service.js";
+import { organizationProcedure, router } from "../trpc.js";
 
-const CampaignStatus = z.enum([
-  "draft",
-  "active",
-  "paused",
-  "completed",
-  "archived",
+const CampaignObjective = z.enum([
+  "awareness",
+  "traffic",
+  "engagement",
+  "leads",
+  "conversion",
+  "retargeting",
+]);
+
+const DbPlatform = z.enum([
+  "meta",
+  "google",
+  "x",
+  "tiktok",
+  "line_yahoo",
+  "amazon",
+  "microsoft",
 ]);
 
 const CreateCampaignInput = z.object({
   name: z.string().min(1).max(200),
-  description: z.string().max(2000).optional(),
-  objective: z.enum([
-    "awareness",
-    "traffic",
-    "engagement",
-    "leads",
-    "conversions",
-    "revenue",
-  ]),
-  budget: z.object({
-    total: z.number().positive(),
-    currency: z.string().length(3),
-    dailyLimit: z.number().positive().optional(),
-  }),
-  startDate: z.string().datetime(),
-  endDate: z.string().datetime().optional(),
-  targetPlatforms: z
-    .array(z.enum(["google", "meta", "tiktok", "line", "x", "yahoo_japan"]))
-    .min(1),
+  objective: CampaignObjective,
+  startDate: z.string().min(1),
+  endDate: z.string().optional(),
+  totalBudget: z.string().min(1),
+  dailyBudget: z.string().min(1),
+  funnelId: z.string().uuid().optional(),
 });
 
 const UpdateCampaignInput = z.object({
   id: z.string().uuid(),
   name: z.string().min(1).max(200).optional(),
-  description: z.string().max(2000).optional(),
-  budget: z
-    .object({
-      total: z.number().positive().optional(),
-      dailyLimit: z.number().positive().optional(),
-    })
-    .optional(),
-  endDate: z.string().datetime().optional(),
-  status: CampaignStatus.optional(),
+  objective: CampaignObjective.optional(),
+  startDate: z.string().optional(),
+  endDate: z.string().nullable().optional(),
+  totalBudget: z.string().optional(),
+  dailyBudget: z.string().optional(),
+  status: z.enum(["draft", "active", "paused", "completed", "error"]).optional(),
+  funnelId: z.string().uuid().nullable().optional(),
 });
 
 const DeployCampaignInput = z.object({
   id: z.string().uuid(),
-  platforms: z
-    .array(z.enum(["google", "meta", "tiktok", "line", "x", "yahoo_japan"]))
-    .min(1),
+  platforms: z.array(DbPlatform).min(1),
 });
 
+function handleServiceError(error: unknown): never {
+  if (error instanceof CampaignNotFoundError) {
+    throw new TRPCError({
+      code: "NOT_FOUND",
+      message: error.message,
+    });
+  }
+  throw new TRPCError({
+    code: "INTERNAL_SERVER_ERROR",
+    message: "An unexpected error occurred",
+    cause: error,
+  });
+}
+
 export const campaignsRouter = router({
-  list: protectedProcedure
-    .input(
-      z
-        .object({
-          status: CampaignStatus.optional(),
-          limit: z.number().int().min(1).max(100).default(20),
-          cursor: z.string().uuid().optional(),
-        })
-        .optional()
-    )
-    .query(({ input: _input }) => {
-      throw new TRPCError({
-        code: "METHOD_NOT_SUPPORTED",
-        message: "campaigns.list is not yet implemented",
-      });
+  list: organizationProcedure
+    .query(async ({ ctx }) => {
+      try {
+        return await listCampaigns(ctx.organizationId);
+      } catch (error) {
+        handleServiceError(error);
+      }
     }),
 
-  get: protectedProcedure
+  get: organizationProcedure
     .input(z.object({ id: z.string().uuid() }))
-    .query(({ input: _input }) => {
-      throw new TRPCError({
-        code: "METHOD_NOT_SUPPORTED",
-        message: "campaigns.get is not yet implemented",
-      });
+    .query(async ({ ctx, input }) => {
+      try {
+        const campaign = await getCampaign(input.id, ctx.organizationId);
+        if (!campaign) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: `Campaign not found: ${input.id}`,
+          });
+        }
+        return campaign;
+      } catch (error) {
+        if (error instanceof TRPCError) throw error;
+        handleServiceError(error);
+      }
     }),
 
-  create: protectedProcedure
+  create: organizationProcedure
     .input(CreateCampaignInput)
-    .mutation(({ input: _input }) => {
-      throw new TRPCError({
-        code: "METHOD_NOT_SUPPORTED",
-        message: "campaigns.create is not yet implemented",
-      });
+    .mutation(async ({ ctx, input }) => {
+      try {
+        return await createCampaign(input, ctx.organizationId, ctx.userId);
+      } catch (error) {
+        handleServiceError(error);
+      }
     }),
 
-  update: protectedProcedure
+  update: organizationProcedure
     .input(UpdateCampaignInput)
-    .mutation(({ input: _input }) => {
-      throw new TRPCError({
-        code: "METHOD_NOT_SUPPORTED",
-        message: "campaigns.update is not yet implemented",
-      });
+    .mutation(async ({ ctx, input }) => {
+      try {
+        const { id, ...fields } = input;
+        return await updateCampaign(id, fields, ctx.organizationId);
+      } catch (error) {
+        handleServiceError(error);
+      }
     }),
 
-  deploy: protectedProcedure
+  deploy: organizationProcedure
     .input(DeployCampaignInput)
-    .mutation(({ input: _input }) => {
-      throw new TRPCError({
-        code: "METHOD_NOT_SUPPORTED",
-        message: "campaigns.deploy is not yet implemented",
-      });
+    .mutation(async ({ ctx, input }) => {
+      try {
+        return await deployCampaign(
+          input.id,
+          input.platforms,
+          ctx.organizationId,
+        );
+      } catch (error) {
+        handleServiceError(error);
+      }
     }),
 
-  pause: protectedProcedure
+  pause: organizationProcedure
     .input(z.object({ id: z.string().uuid() }))
-    .mutation(({ input: _input }) => {
-      throw new TRPCError({
-        code: "METHOD_NOT_SUPPORTED",
-        message: "campaigns.pause is not yet implemented",
-      });
+    .mutation(async ({ ctx, input }) => {
+      try {
+        return await pauseCampaign(input.id, ctx.organizationId);
+      } catch (error) {
+        handleServiceError(error);
+      }
     }),
 
-  resume: protectedProcedure
+  resume: organizationProcedure
     .input(z.object({ id: z.string().uuid() }))
-    .mutation(({ input: _input }) => {
-      throw new TRPCError({
-        code: "METHOD_NOT_SUPPORTED",
-        message: "campaigns.resume is not yet implemented",
-      });
+    .mutation(async ({ ctx, input }) => {
+      try {
+        return await resumeCampaign(input.id, ctx.organizationId);
+      } catch (error) {
+        handleServiceError(error);
+      }
+    }),
+
+  delete: organizationProcedure
+    .input(z.object({ id: z.string().uuid() }))
+    .mutation(async ({ ctx, input }) => {
+      try {
+        return await deleteCampaign(input.id, ctx.organizationId);
+      } catch (error) {
+        handleServiceError(error);
+      }
     }),
 });

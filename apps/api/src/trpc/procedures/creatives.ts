@@ -1,83 +1,109 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
-import { protectedProcedure, router } from "../trpc.js";
+import {
+  adaptCreative,
+  CreativeNotFoundError,
+  generateCreative,
+  getCreative,
+  listCreatives,
+} from "../../services/creative.service.js";
+import { organizationProcedure, router } from "../trpc.js";
 
-const CreativeFormat = z.enum([
-  "image",
-  "video",
-  "carousel",
-  "text",
-  "html5",
-  "responsive",
-]);
+const CreativeType = z.enum(["text", "image", "video", "carousel"]);
 
-const Platform = z.enum([
-  "google",
+const DbPlatform = z.enum([
   "meta",
-  "tiktok",
-  "line",
+  "google",
   "x",
-  "yahoo_japan",
+  "tiktok",
+  "line_yahoo",
+  "amazon",
+  "microsoft",
 ]);
+
+function handleServiceError(error: unknown): never {
+  if (error instanceof CreativeNotFoundError) {
+    throw new TRPCError({
+      code: "NOT_FOUND",
+      message: error.message,
+    });
+  }
+  throw new TRPCError({
+    code: "INTERNAL_SERVER_ERROR",
+    message: "An unexpected error occurred",
+    cause: error,
+  });
+}
 
 export const creativesRouter = router({
-  list: protectedProcedure
-    .input(
-      z
-        .object({
-          campaignId: z.string().uuid().optional(),
-          format: CreativeFormat.optional(),
-          limit: z.number().int().min(1).max(100).default(20),
-          cursor: z.string().uuid().optional(),
-        })
-        .optional()
-    )
-    .query(({ input: _input }) => {
-      throw new TRPCError({
-        code: "METHOD_NOT_SUPPORTED",
-        message: "creatives.list is not yet implemented",
-      });
+  list: organizationProcedure
+    .query(async ({ ctx }) => {
+      try {
+        return await listCreatives(ctx.organizationId);
+      } catch (error) {
+        handleServiceError(error);
+      }
     }),
 
-  get: protectedProcedure
+  get: organizationProcedure
     .input(z.object({ id: z.string().uuid() }))
-    .query(({ input: _input }) => {
-      throw new TRPCError({
-        code: "METHOD_NOT_SUPPORTED",
-        message: "creatives.get is not yet implemented",
-      });
+    .query(async ({ ctx, input }) => {
+      try {
+        const creative = await getCreative(input.id, ctx.organizationId);
+        if (!creative) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: `Creative not found: ${input.id}`,
+          });
+        }
+        return creative;
+      } catch (error) {
+        if (error instanceof TRPCError) throw error;
+        handleServiceError(error);
+      }
     }),
 
-  generate: protectedProcedure
+  generate: organizationProcedure
     .input(
       z.object({
-        campaignId: z.string().uuid(),
         prompt: z.string().min(1).max(2000),
-        format: CreativeFormat,
-        targetPlatforms: z.array(Platform).min(1),
-        brandGuidelineId: z.string().uuid().optional(),
-        variations: z.number().int().min(1).max(10).default(3),
+        type: CreativeType,
+        platforms: z.array(DbPlatform).min(1),
+        baseContent: z.record(z.string(), z.unknown()).default({}),
       })
     )
-    .mutation(({ input: _input }) => {
-      throw new TRPCError({
-        code: "METHOD_NOT_SUPPORTED",
-        message: "creatives.generate is not yet implemented",
-      });
+    .mutation(async ({ ctx, input }) => {
+      try {
+        return await generateCreative(
+          {
+            prompt: input.prompt,
+            type: input.type,
+            platforms: input.platforms,
+            baseContent: input.baseContent,
+          },
+          ctx.organizationId,
+        );
+      } catch (error) {
+        handleServiceError(error);
+      }
     }),
 
-  adapt: protectedProcedure
+  adapt: organizationProcedure
     .input(
       z.object({
         creativeId: z.string().uuid(),
-        targetPlatform: Platform,
-        targetFormat: CreativeFormat.optional(),
+        targetPlatform: DbPlatform,
       })
     )
-    .mutation(({ input: _input }) => {
-      throw new TRPCError({
-        code: "METHOD_NOT_SUPPORTED",
-        message: "creatives.adapt is not yet implemented",
-      });
+    .mutation(async ({ ctx, input }) => {
+      try {
+        return await adaptCreative(
+          input.creativeId,
+          input.targetPlatform,
+          ctx.organizationId,
+        );
+      } catch (error) {
+        handleServiceError(error);
+      }
     }),
 });

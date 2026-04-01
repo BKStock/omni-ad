@@ -1,23 +1,463 @@
-import { Settings } from 'lucide-react';
+'use client';
 
-export default function SettingsPage(): React.ReactElement {
+import { useState } from 'react';
+import {
+  Check,
+  Copy,
+  Crown,
+  Eye,
+  EyeOff,
+  Key,
+  Link2,
+  Loader2,
+  RefreshCw,
+  Shield,
+  Trash2,
+  Unlink,
+  UserPlus,
+  Users,
+  X,
+} from 'lucide-react';
+import { cn } from '@/lib/utils';
+
+// -- Types --
+
+type SettingsTab = 'platforms' | 'team' | 'billing' | 'api';
+type Platform = 'google' | 'meta' | 'tiktok' | 'line' | 'x' | 'yahoo_japan';
+type ConnectionStatus = 'connected' | 'disconnected' | 'error' | 'expired';
+type UserRole = 'admin' | 'editor' | 'viewer';
+
+interface PlatformConnection {
+  platform: Platform;
+  label: string;
+  status: ConnectionStatus;
+  accountName?: string;
+  lastSync?: string;
+  icon: string;
+}
+
+interface TeamMember {
+  id: string;
+  name: string;
+  email: string;
+  role: UserRole;
+  lastActive: string;
+}
+
+// -- Constants --
+
+const TABS: { key: SettingsTab; label: string; icon: React.ReactNode }[] = [
+  { key: 'platforms', label: 'プラットフォーム接続', icon: <Link2 size={16} /> },
+  { key: 'team', label: 'チーム管理', icon: <Users size={16} /> },
+  { key: 'billing', label: '請求', icon: <Crown size={16} /> },
+  { key: 'api', label: 'API', icon: <Key size={16} /> },
+];
+
+const STATUS_CONFIG: Record<ConnectionStatus, { label: string; className: string }> = {
+  connected: { label: '接続済み', className: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' },
+  disconnected: { label: '未接続', className: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400' },
+  error: { label: 'エラー', className: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' },
+  expired: { label: '期限切れ', className: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400' },
+};
+
+const ROLE_LABELS: Record<UserRole, string> = {
+  admin: '管理者',
+  editor: '編集者',
+  viewer: '閲覧者',
+};
+
+const MOCK_CONNECTIONS: PlatformConnection[] = [
+  { platform: 'google', label: 'Google Ads', status: 'connected', accountName: 'OMNI-AD Google', lastSync: '2026-04-02T05:30:00Z', icon: 'G' },
+  { platform: 'meta', label: 'Meta Ads', status: 'connected', accountName: 'OMNI-AD Meta', lastSync: '2026-04-02T05:00:00Z', icon: 'M' },
+  { platform: 'tiktok', label: 'TikTok Ads', status: 'disconnected', icon: 'T' },
+  { platform: 'line', label: 'LINE Ads', status: 'connected', accountName: 'OMNI-AD LINE', lastSync: '2026-04-01T22:00:00Z', icon: 'L' },
+  { platform: 'x', label: 'X Ads', status: 'expired', accountName: 'OMNI-AD X', icon: 'X' },
+  { platform: 'yahoo_japan', label: 'Yahoo! Japan Ads', status: 'disconnected', icon: 'Y' },
+];
+
+const MOCK_TEAM: TeamMember[] = [
+  { id: '1', name: '田中太郎', email: 'tanaka@example.com', role: 'admin', lastActive: '2026-04-02T06:00:00Z' },
+  { id: '2', name: '鈴木花子', email: 'suzuki@example.com', role: 'editor', lastActive: '2026-04-01T18:00:00Z' },
+  { id: '3', name: '佐藤一郎', email: 'sato@example.com', role: 'viewer', lastActive: '2026-03-30T12:00:00Z' },
+];
+
+// -- Subcomponents --
+
+function PlatformsTab(): React.ReactElement {
+  const [connecting, setConnecting] = useState<Platform | null>(null);
+
+  function handleConnect(platform: Platform): void {
+    setConnecting(platform);
+    setTimeout(() => setConnecting(null), 2000);
+  }
+
+  return (
+    <div className="space-y-4">
+      <p className="text-sm text-muted-foreground">
+        広告プラットフォームとの接続を管理します。OAuthで安全に接続されます。
+      </p>
+      <div className="space-y-3">
+        {MOCK_CONNECTIONS.map((conn) => {
+          const statusConfig = STATUS_CONFIG[conn.status];
+          return (
+            <div key={conn.platform} className="flex items-center justify-between rounded-lg border border-border p-4">
+              <div className="flex items-center gap-4">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted text-sm font-bold text-foreground">
+                  {conn.icon}
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-foreground">{conn.label}</p>
+                  {conn.accountName && (
+                    <p className="text-xs text-muted-foreground">{conn.accountName}</p>
+                  )}
+                  {conn.lastSync && (
+                    <p className="text-[10px] text-muted-foreground/60">
+                      最終同期: {new Intl.DateTimeFormat('ja-JP', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }).format(new Date(conn.lastSync))}
+                    </p>
+                  )}
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <span className={cn('inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium', statusConfig.className)}>
+                  {statusConfig.label}
+                </span>
+                {conn.status === 'connected' ? (
+                  <button
+                    type="button"
+                    className="inline-flex items-center gap-1 rounded-md border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-destructive"
+                  >
+                    <Unlink size={12} />
+                    切断
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => handleConnect(conn.platform)}
+                    disabled={connecting === conn.platform}
+                    className="inline-flex items-center gap-1 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+                  >
+                    {connecting === conn.platform ? <Loader2 size={12} className="animate-spin" /> : <Link2 size={12} />}
+                    接続
+                  </button>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function TeamTab(): React.ReactElement {
+  const [inviteOpen, setInviteOpen] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState('');
+  const [inviteRole, setInviteRole] = useState<UserRole>('viewer');
+
+  function handleInvite(e: React.FormEvent<HTMLFormElement>): void {
+    e.preventDefault();
+    setInviteOpen(false);
+    setInviteEmail('');
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-muted-foreground">チームメンバーの管理と権限設定</p>
+        <button
+          type="button"
+          onClick={() => setInviteOpen(true)}
+          className="inline-flex items-center gap-1 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90"
+        >
+          <UserPlus size={14} />
+          メンバーを招待
+        </button>
+      </div>
+
+      {/* Invite form */}
+      {inviteOpen && (
+        <form onSubmit={handleInvite} className="rounded-lg border border-primary/30 bg-primary/5 p-4">
+          <div className="flex items-end gap-3">
+            <div className="flex-1">
+              <label htmlFor="invite-email" className="mb-1 block text-xs font-medium text-foreground">メールアドレス</label>
+              <input
+                id="invite-email"
+                type="email"
+                value={inviteEmail}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setInviteEmail(e.target.value)}
+                className="w-full rounded-md border border-input bg-background px-3 py-1.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                placeholder="user@example.com"
+                required
+              />
+            </div>
+            <div className="w-32">
+              <label htmlFor="invite-role" className="mb-1 block text-xs font-medium text-foreground">権限</label>
+              <select
+                id="invite-role"
+                value={inviteRole}
+                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setInviteRole(e.target.value as UserRole)}
+                className="w-full rounded-md border border-input bg-background px-3 py-1.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+              >
+                {(Object.entries(ROLE_LABELS) as [UserRole, string][]).map(([key, label]) => (
+                  <option key={key} value={key}>{label}</option>
+                ))}
+              </select>
+            </div>
+            <button
+              type="submit"
+              className="rounded-md bg-primary px-4 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+            >
+              招待
+            </button>
+            <button
+              type="button"
+              onClick={() => setInviteOpen(false)}
+              className="rounded-md border border-border p-1.5 text-muted-foreground hover:text-foreground"
+              aria-label="閉じる"
+            >
+              <X size={16} />
+            </button>
+          </div>
+        </form>
+      )}
+
+      {/* Team list */}
+      <div className="space-y-2">
+        {MOCK_TEAM.map((member) => (
+          <div key={member.id} className="flex items-center justify-between rounded-lg border border-border p-4">
+            <div className="flex items-center gap-3">
+              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-sm font-medium text-primary">
+                {member.name[0]}
+              </div>
+              <div>
+                <p className="text-sm font-medium text-foreground">{member.name}</p>
+                <p className="text-xs text-muted-foreground">{member.email}</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <span className={cn(
+                'inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium',
+                member.role === 'admin'
+                  ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400'
+                  : member.role === 'editor'
+                    ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+                    : 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400',
+              )}>
+                {member.role === 'admin' && <Shield size={10} />}
+                {ROLE_LABELS[member.role]}
+              </span>
+              {member.role !== 'admin' && (
+                <button
+                  type="button"
+                  className="rounded p-1 text-muted-foreground hover:text-destructive"
+                  title="削除"
+                  aria-label={`${member.name}を削除`}
+                >
+                  <Trash2 size={14} />
+                </button>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function BillingTab(): React.ReactElement {
   return (
     <div className="space-y-6">
+      {/* Current plan */}
+      <div className="rounded-lg border border-primary/30 bg-primary/5 p-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="flex items-center gap-2">
+              <Crown size={18} className="text-primary" />
+              <h3 className="text-lg font-semibold text-foreground">プロフェッショナルプラン</h3>
+            </div>
+            <p className="mt-1 text-sm text-muted-foreground">月額 98,000円 (税別)</p>
+          </div>
+          <button
+            type="button"
+            className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+          >
+            プランを変更
+          </button>
+        </div>
+      </div>
+
+      {/* Usage metrics */}
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-foreground">
-          設定
-        </h1>
+        <h3 className="mb-3 text-sm font-medium text-foreground">利用状況</h3>
+        <div className="space-y-3">
+          {[
+            { label: 'キャンペーン数', current: 12, limit: 50 },
+            { label: 'チームメンバー', current: 3, limit: 10 },
+            { label: 'API呼び出し / 月', current: 45230, limit: 100000 },
+            { label: 'クリエイティブ生成 / 月', current: 28, limit: 100 },
+          ].map((item) => {
+            const pct = (item.current / item.limit) * 100;
+            return (
+              <div key={item.label}>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">{item.label}</span>
+                  <span className="font-medium text-foreground">
+                    {item.current.toLocaleString()} / {item.limit.toLocaleString()}
+                  </span>
+                </div>
+                <div className="mt-1.5 h-2 rounded-full bg-muted">
+                  <div
+                    className={cn('h-2 rounded-full', pct > 80 ? 'bg-red-500' : pct > 60 ? 'bg-yellow-500' : 'bg-green-500')}
+                    style={{ width: `${Math.min(100, pct)}%` }}
+                  />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ApiTab(): React.ReactElement {
+  const [showKey, setShowKey] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const API_KEY = 'omni_sk_live_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';
+
+  function handleCopy(): void {
+    navigator.clipboard.writeText(API_KEY).catch(() => {
+      // clipboard access denied
+    });
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }
+
+  return (
+    <div className="space-y-6">
+      <p className="text-sm text-muted-foreground">
+        APIキーを使用してOMNI-AD APIにプログラムからアクセスできます。
+      </p>
+
+      {/* API Key display */}
+      <div className="rounded-lg border border-border p-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm font-medium text-foreground">Live API Key</p>
+            <p className="text-xs text-muted-foreground">本番環境用のAPIキー</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setShowKey(!showKey)}
+              className="rounded p-1.5 text-muted-foreground hover:text-foreground"
+              aria-label={showKey ? 'キーを隠す' : 'キーを表示'}
+            >
+              {showKey ? <EyeOff size={14} /> : <Eye size={14} />}
+            </button>
+            <button
+              type="button"
+              onClick={handleCopy}
+              className="rounded p-1.5 text-muted-foreground hover:text-foreground"
+              aria-label="キーをコピー"
+            >
+              {copied ? <Check size={14} className="text-green-500" /> : <Copy size={14} />}
+            </button>
+          </div>
+        </div>
+        <div className="mt-3 rounded-md bg-muted px-3 py-2 font-mono text-sm text-foreground">
+          {showKey ? API_KEY : 'omni_sk_live_************************************'}
+        </div>
+      </div>
+
+      {/* Rotate key */}
+      <div className="rounded-lg border border-border p-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm font-medium text-foreground">APIキーのローテーション</p>
+            <p className="text-xs text-muted-foreground">
+              新しいキーを生成します。古いキーは即座に無効化されます。
+            </p>
+          </div>
+          <button
+            type="button"
+            className="inline-flex items-center gap-1 rounded-md border border-destructive px-3 py-1.5 text-xs font-medium text-destructive hover:bg-destructive/10"
+          >
+            <RefreshCw size={12} />
+            キーを再生成
+          </button>
+        </div>
+      </div>
+
+      {/* API usage */}
+      <div className="rounded-lg border border-border p-4">
+        <p className="text-sm font-medium text-foreground">API利用状況 (今月)</p>
+        <div className="mt-3 grid grid-cols-3 gap-4">
+          <div className="text-center">
+            <p className="text-2xl font-bold text-foreground">45,230</p>
+            <p className="text-xs text-muted-foreground">リクエスト数</p>
+          </div>
+          <div className="text-center">
+            <p className="text-2xl font-bold text-foreground">142ms</p>
+            <p className="text-xs text-muted-foreground">平均レスポンス</p>
+          </div>
+          <div className="text-center">
+            <p className="text-2xl font-bold text-foreground">99.8%</p>
+            <p className="text-xs text-muted-foreground">稼働率</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// -- Main Page --
+
+export default function SettingsPage(): React.ReactElement {
+  const [activeTab, setActiveTab] = useState<SettingsTab>('platforms');
+
+  const TAB_CONTENT: Record<SettingsTab, React.ReactElement> = {
+    platforms: <PlatformsTab />,
+    team: <TeamTab />,
+    billing: <BillingTab />,
+    api: <ApiTab />,
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Page header */}
+      <div>
+        <h1 className="text-2xl font-bold tracking-tight text-foreground">設定</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           アカウント設定、API連携、通知設定の管理
         </p>
       </div>
-      <div className="flex h-96 items-center justify-center rounded-lg border border-dashed border-border bg-card">
-        <div className="flex flex-col items-center gap-3 text-muted-foreground">
-          <Settings size={48} className="text-muted-foreground/30" />
-          <p className="text-lg font-medium">Coming Soon</p>
-          <p className="text-sm">設定画面は開発中です</p>
-        </div>
+
+      {/* Tabs */}
+      <div className="border-b border-border">
+        <nav className="-mb-px flex gap-4" aria-label="設定タブ">
+          {TABS.map((tab) => (
+            <button
+              key={tab.key}
+              type="button"
+              onClick={() => setActiveTab(tab.key)}
+              className={cn(
+                'inline-flex items-center gap-2 border-b-2 px-1 py-3 text-sm font-medium transition-colors',
+                activeTab === tab.key
+                  ? 'border-primary text-primary'
+                  : 'border-transparent text-muted-foreground hover:border-border hover:text-foreground',
+              )}
+            >
+              {tab.icon}
+              {tab.label}
+            </button>
+          ))}
+        </nav>
       </div>
+
+      {/* Tab content */}
+      <div>{TAB_CONTENT[activeTab]}</div>
     </div>
   );
 }

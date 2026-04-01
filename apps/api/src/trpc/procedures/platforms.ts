@@ -1,81 +1,107 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
-import { protectedProcedure, router } from "../trpc.js";
+import {
+  connectPlatform,
+  disconnectPlatform,
+  getConnectionStatus,
+  listConnections,
+  PlatformConnectionNotFoundError,
+  syncNow,
+} from "../../services/platform.service.js";
+import { organizationProcedure, router } from "../trpc.js";
 
-const Platform = z.enum([
-  "google",
+const DbPlatform = z.enum([
   "meta",
-  "tiktok",
-  "line",
+  "google",
   "x",
-  "yahoo_japan",
+  "tiktok",
+  "line_yahoo",
+  "amazon",
+  "microsoft",
 ]);
 
-export const platformsRouter = router({
-  list: protectedProcedure.query(() => {
+function handleServiceError(error: unknown): never {
+  if (error instanceof PlatformConnectionNotFoundError) {
     throw new TRPCError({
-      code: "METHOD_NOT_SUPPORTED",
-      message: "platforms.list is not yet implemented",
+      code: "NOT_FOUND",
+      message: error.message,
     });
-  }),
+  }
+  throw new TRPCError({
+    code: "INTERNAL_SERVER_ERROR",
+    message: "An unexpected error occurred",
+    cause: error,
+  });
+}
 
-  connect: protectedProcedure
+export const platformsRouter = router({
+  list: organizationProcedure
+    .query(async ({ ctx }) => {
+      try {
+        return await listConnections(ctx.organizationId);
+      } catch (error) {
+        handleServiceError(error);
+      }
+    }),
+
+  connect: organizationProcedure
     .input(
       z.object({
-        platform: Platform,
+        platform: DbPlatform,
         redirectUrl: z.string().url(),
-        scopes: z.array(z.string()).optional(),
       })
     )
-    .mutation(({ input: _input }) => {
-      throw new TRPCError({
-        code: "METHOD_NOT_SUPPORTED",
-        message: "platforms.connect is not yet implemented",
-      });
+    .mutation(async ({ ctx, input }) => {
+      try {
+        return await connectPlatform(
+          input.platform,
+          ctx.organizationId,
+          input.redirectUrl,
+        );
+      } catch (error) {
+        handleServiceError(error);
+      }
     }),
 
-  disconnect: protectedProcedure
+  disconnect: organizationProcedure
     .input(
       z.object({
-        platform: Platform,
-        accountId: z.string().min(1),
+        connectionId: z.string().uuid(),
       })
     )
-    .mutation(({ input: _input }) => {
-      throw new TRPCError({
-        code: "METHOD_NOT_SUPPORTED",
-        message: "platforms.disconnect is not yet implemented",
-      });
+    .mutation(async ({ ctx, input }) => {
+      try {
+        return await disconnectPlatform(input.connectionId, ctx.organizationId);
+      } catch (error) {
+        handleServiceError(error);
+      }
     }),
 
-  status: protectedProcedure
+  status: organizationProcedure
     .input(
       z.object({
-        platform: Platform,
-        accountId: z.string().min(1).optional(),
+        connectionId: z.string().uuid(),
       })
     )
-    .query(({ input: _input }) => {
-      throw new TRPCError({
-        code: "METHOD_NOT_SUPPORTED",
-        message: "platforms.status is not yet implemented",
-      });
+    .query(async ({ ctx, input }) => {
+      try {
+        return await getConnectionStatus(input.connectionId, ctx.organizationId);
+      } catch (error) {
+        handleServiceError(error);
+      }
     }),
 
-  syncNow: protectedProcedure
+  syncNow: organizationProcedure
     .input(
       z.object({
-        platform: Platform,
-        accountId: z.string().min(1),
-        syncType: z
-          .enum(["full", "incremental", "campaigns_only", "metrics_only"])
-          .default("incremental"),
+        connectionId: z.string().uuid(),
       })
     )
-    .mutation(({ input: _input }) => {
-      throw new TRPCError({
-        code: "METHOD_NOT_SUPPORTED",
-        message: "platforms.syncNow is not yet implemented",
-      });
+    .mutation(async ({ ctx, input }) => {
+      try {
+        return await syncNow(input.connectionId, ctx.organizationId);
+      } catch (error) {
+        handleServiceError(error);
+      }
     }),
 });

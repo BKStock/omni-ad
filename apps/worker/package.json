@@ -16,7 +16,8 @@
     "@omni-ad/queue": "workspace:*",
     "@omni-ad/shared": "workspace:*",
     "@omni-ad/ai-engine": "workspace:*",
-    "bullmq": "^5.30.0"
+    "bullmq": "^5.30.0",
+    "drizzle-orm": "^0.38.0"
   },
   "devDependencies": {
     "tsx": "^4.19.0",

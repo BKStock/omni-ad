@@ -1,105 +1,99 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
-import { protectedProcedure, router } from "../trpc.js";
+import {
+  getAllocationHistory,
+  getCurrentAllocations,
+  getForecast,
+  triggerOptimization,
+} from "../../services/budget.service.js";
+import { organizationProcedure, router } from "../trpc.js";
 
-const Platform = z.enum([
-  "google",
+const DbPlatform = z.enum([
   "meta",
-  "tiktok",
-  "line",
+  "google",
   "x",
-  "yahoo_japan",
+  "tiktok",
+  "line_yahoo",
+  "amazon",
+  "microsoft",
 ]);
 
+const Objective = z.enum([
+  "maximize_roas",
+  "maximize_conversions",
+  "maximize_reach",
+]);
+
+function handleServiceError(error: unknown): never {
+  throw new TRPCError({
+    code: "INTERNAL_SERVER_ERROR",
+    message: "An unexpected error occurred",
+    cause: error,
+  });
+}
+
 export const budgetsRouter = router({
-  current: protectedProcedure
-    .input(
-      z
-        .object({
-          campaignId: z.string().uuid().optional(),
-        })
-        .optional()
-    )
-    .query(({ input: _input }) => {
-      throw new TRPCError({
-        code: "METHOD_NOT_SUPPORTED",
-        message: "budgets.current is not yet implemented",
-      });
+  current: organizationProcedure
+    .query(async ({ ctx }) => {
+      try {
+        const allocation = await getCurrentAllocations(ctx.organizationId);
+        return allocation ?? null;
+      } catch (error) {
+        handleServiceError(error);
+      }
     }),
 
-  history: protectedProcedure
+  history: organizationProcedure
     .input(
       z.object({
-        campaignId: z.string().uuid().optional(),
-        startDate: z.string().datetime(),
-        endDate: z.string().datetime(),
-        granularity: z.enum(["hourly", "daily", "weekly", "monthly"]).default("daily"),
+        limit: z.number().int().min(1).max(100).default(20),
       })
     )
-    .query(({ input: _input }) => {
-      throw new TRPCError({
-        code: "METHOD_NOT_SUPPORTED",
-        message: "budgets.history is not yet implemented",
-      });
+    .query(async ({ ctx, input }) => {
+      try {
+        return await getAllocationHistory(ctx.organizationId, input.limit);
+      } catch (error) {
+        handleServiceError(error);
+      }
     }),
 
-  optimize: protectedProcedure
+  optimize: organizationProcedure
     .input(
       z.object({
-        campaignId: z.string().uuid(),
-        objective: z.enum(["maximize_roas", "minimize_cpa", "maximize_reach"]),
-        constraints: z
-          .object({
-            maxBudget: z.number().positive().optional(),
-            minSpendPerPlatform: z.number().nonnegative().optional(),
-            platformWeights: z.record(Platform, z.number().min(0).max(1)).optional(),
-          })
-          .optional(),
+        totalBudget: z.number().positive(),
+        platforms: z.array(DbPlatform).min(1),
+        objective: Objective.default("maximize_roas"),
       })
     )
-    .mutation(({ input: _input }) => {
-      throw new TRPCError({
-        code: "METHOD_NOT_SUPPORTED",
-        message: "budgets.optimize is not yet implemented",
-      });
+    .mutation(async ({ ctx, input }) => {
+      try {
+        return await triggerOptimization(
+          ctx.organizationId,
+          input.totalBudget,
+          input.platforms,
+          input.objective,
+        );
+      } catch (error) {
+        handleServiceError(error);
+      }
     }),
 
-  forecast: protectedProcedure
+  forecast: organizationProcedure
     .input(
       z.object({
-        campaignId: z.string().uuid(),
-        budget: z.number().positive(),
-        durationDays: z.number().int().min(1).max(365),
-        platforms: z.array(Platform).min(1),
+        proposedAllocations: z.record(DbPlatform, z.number().nonnegative()),
+        forecastDays: z.number().int().min(1).max(90).default(7),
       })
     )
-    .query(({ input: _input }) => {
-      throw new TRPCError({
-        code: "METHOD_NOT_SUPPORTED",
-        message: "budgets.forecast is not yet implemented",
-      });
-    }),
-
-  simulate: protectedProcedure
-    .input(
-      z.object({
-        campaignId: z.string().uuid(),
-        scenarios: z
-          .array(
-            z.object({
-              name: z.string().min(1).max(100),
-              budgetChange: z.number(),
-              platformAllocation: z.record(Platform, z.number().min(0).max(1)).optional(),
-            })
-          )
-          .min(1)
-          .max(5),
-      })
-    )
-    .query(({ input: _input }) => {
-      throw new TRPCError({
-        code: "METHOD_NOT_SUPPORTED",
-        message: "budgets.simulate is not yet implemented",
-      });
+    .query(async ({ ctx, input }) => {
+      try {
+        return await getForecast(
+          ctx.organizationId,
+          input.proposedAllocations,
+          input.forecastDays,
+        );
+      } catch (error) {
+        handleServiceError(error);
+      }
     }),
 });

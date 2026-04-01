@@ -1,98 +1,77 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
-import { protectedProcedure, router } from "../trpc.js";
+import {
+  generateReport,
+  listAuditLogs,
+} from "../../services/report.service.js";
+import { organizationProcedure, router } from "../trpc.js";
 
-const ReportType = z.enum([
-  "performance",
-  "budget",
-  "attribution",
-  "audience",
-  "creative",
-  "funnel",
-  "executive_summary",
+const ReportType = z.enum(["daily", "weekly", "monthly", "custom"]);
+
+const DbPlatform = z.enum([
+  "meta",
+  "google",
+  "x",
+  "tiktok",
+  "line_yahoo",
+  "amazon",
+  "microsoft",
 ]);
 
-const ExportFormat = z.enum(["pdf", "csv", "xlsx", "json"]);
+function handleServiceError(error: unknown): never {
+  throw new TRPCError({
+    code: "INTERNAL_SERVER_ERROR",
+    message: "An unexpected error occurred",
+    cause: error,
+  });
+}
 
 export const reportsRouter = router({
-  generate: protectedProcedure
+  generate: organizationProcedure
     .input(
       z.object({
         type: ReportType,
-        startDate: z.string().datetime(),
-        endDate: z.string().datetime(),
-        campaignIds: z.array(z.string().uuid()).optional(),
-        format: ExportFormat.default("pdf"),
+        startDate: z.string().min(1),
+        endDate: z.string().min(1),
+        platforms: z.array(DbPlatform).optional(),
         includeInsights: z.boolean().default(true),
       })
     )
-    .mutation(({ input: _input }) => {
-      throw new TRPCError({
-        code: "METHOD_NOT_SUPPORTED",
-        message: "reports.generate is not yet implemented",
-      });
+    .mutation(async ({ ctx, input }) => {
+      try {
+        return await generateReport(
+          {
+            reportType: input.type,
+            startDate: input.startDate,
+            endDate: input.endDate,
+            platforms: input.platforms,
+            includeInsights: input.includeInsights,
+          },
+          ctx.organizationId,
+        );
+      } catch (error) {
+        handleServiceError(error);
+      }
     }),
 
-  list: protectedProcedure
+  list: organizationProcedure
     .input(
       z
         .object({
-          type: ReportType.optional(),
-          limit: z.number().int().min(1).max(100).default(20),
-          cursor: z.string().uuid().optional(),
+          entityType: z.string().optional(),
+          limit: z.number().int().min(1).max(100).default(50),
         })
         .optional()
     )
-    .query(({ input: _input }) => {
-      throw new TRPCError({
-        code: "METHOD_NOT_SUPPORTED",
-        message: "reports.list is not yet implemented",
-      });
-    }),
-
-  schedule: protectedProcedure
-    .input(
-      z.object({
-        type: ReportType,
-        frequency: z.enum(["daily", "weekly", "biweekly", "monthly"]),
-        format: ExportFormat.default("pdf"),
-        recipients: z.array(z.string().email()).min(1).max(20),
-        campaignIds: z.array(z.string().uuid()).optional(),
-        includeInsights: z.boolean().default(true),
-        timezone: z.string().default("Asia/Tokyo"),
-      })
-    )
-    .mutation(({ input: _input }) => {
-      throw new TRPCError({
-        code: "METHOD_NOT_SUPPORTED",
-        message: "reports.schedule is not yet implemented",
-      });
-    }),
-
-  insights: protectedProcedure
-    .input(
-      z.object({
-        startDate: z.string().datetime(),
-        endDate: z.string().datetime(),
-        campaignIds: z.array(z.string().uuid()).optional(),
-        focusAreas: z
-          .array(
-            z.enum([
-              "performance_trends",
-              "budget_efficiency",
-              "audience_behavior",
-              "creative_performance",
-              "platform_comparison",
-              "anomaly_detection",
-            ])
-          )
-          .optional(),
-      })
-    )
-    .query(({ input: _input }) => {
-      throw new TRPCError({
-        code: "METHOD_NOT_SUPPORTED",
-        message: "reports.insights is not yet implemented",
-      });
+    .query(async ({ ctx, input }) => {
+      try {
+        return await listAuditLogs(
+          ctx.organizationId,
+          input?.entityType,
+          input?.limit,
+        );
+      } catch (error) {
+        handleServiceError(error);
+      }
     }),
 });

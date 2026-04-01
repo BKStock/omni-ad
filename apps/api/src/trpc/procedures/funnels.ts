@@ -1,6 +1,13 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
-import { protectedProcedure, router } from "../trpc.js";
+import {
+  createFunnel,
+  FunnelNotFoundError,
+  getFunnel,
+  listFunnels,
+  updateFunnel,
+} from "../../services/funnel.service.js";
+import { organizationProcedure, router } from "../trpc.js";
 
 const FunnelStageType = z.enum([
   "awareness",
@@ -11,52 +18,68 @@ const FunnelStageType = z.enum([
   "retention",
 ]);
 
-const Platform = z.enum([
-  "google",
+const DbPlatform = z.enum([
   "meta",
-  "tiktok",
-  "line",
+  "google",
   "x",
-  "yahoo_japan",
+  "tiktok",
+  "line_yahoo",
+  "amazon",
+  "microsoft",
 ]);
 
+function handleServiceError(error: unknown): never {
+  if (error instanceof FunnelNotFoundError) {
+    throw new TRPCError({
+      code: "NOT_FOUND",
+      message: error.message,
+    });
+  }
+  throw new TRPCError({
+    code: "INTERNAL_SERVER_ERROR",
+    message: "An unexpected error occurred",
+    cause: error,
+  });
+}
+
 export const funnelsRouter = router({
-  list: protectedProcedure
-    .input(
-      z
-        .object({
-          limit: z.number().int().min(1).max(100).default(20),
-          cursor: z.string().uuid().optional(),
-        })
-        .optional()
-    )
-    .query(({ input: _input }) => {
-      throw new TRPCError({
-        code: "METHOD_NOT_SUPPORTED",
-        message: "funnels.list is not yet implemented",
-      });
+  list: organizationProcedure
+    .query(async ({ ctx }) => {
+      try {
+        return await listFunnels(ctx.organizationId);
+      } catch (error) {
+        handleServiceError(error);
+      }
     }),
 
-  get: protectedProcedure
+  get: organizationProcedure
     .input(z.object({ id: z.string().uuid() }))
-    .query(({ input: _input }) => {
-      throw new TRPCError({
-        code: "METHOD_NOT_SUPPORTED",
-        message: "funnels.get is not yet implemented",
-      });
+    .query(async ({ ctx, input }) => {
+      try {
+        const funnel = await getFunnel(input.id, ctx.organizationId);
+        if (!funnel) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: `Funnel not found: ${input.id}`,
+          });
+        }
+        return funnel;
+      } catch (error) {
+        if (error instanceof TRPCError) throw error;
+        handleServiceError(error);
+      }
     }),
 
-  create: protectedProcedure
+  create: organizationProcedure
     .input(
       z.object({
         name: z.string().min(1).max(200),
-        description: z.string().max(2000).optional(),
         stages: z
           .array(
             z.object({
               name: z.string().min(1).max(100),
               type: FunnelStageType,
-              platforms: z.array(Platform).min(1),
+              platforms: z.array(DbPlatform).min(1),
               campaignIds: z.array(z.string().uuid()).optional(),
             })
           )
@@ -64,33 +87,52 @@ export const funnelsRouter = router({
           .max(10),
       })
     )
-    .mutation(({ input: _input }) => {
-      throw new TRPCError({
-        code: "METHOD_NOT_SUPPORTED",
-        message: "funnels.create is not yet implemented",
-      });
+    .mutation(async ({ ctx, input }) => {
+      try {
+        // Extract campaign assignments from stages
+        const campaignAssignments = input.stages.flatMap((stage, index) =>
+          (stage.campaignIds ?? []).map((campaignId) => ({
+            stageIndex: index,
+            campaignId,
+          }))
+        );
+
+        return await createFunnel(
+          { name: input.name, stages: input.stages },
+          ctx.organizationId,
+          ctx.userId,
+          campaignAssignments.length > 0 ? campaignAssignments : undefined,
+        );
+      } catch (error) {
+        handleServiceError(error);
+      }
     }),
 
-  autoConstruct: protectedProcedure
+  update: organizationProcedure
     .input(
       z.object({
-        objective: z.enum([
-          "lead_generation",
-          "ecommerce_sales",
-          "app_installs",
-          "brand_awareness",
-          "saas_trial",
-        ]),
-        budget: z.number().positive(),
-        targetPlatforms: z.array(Platform).min(1),
-        industryVertical: z.string().min(1).max(100).optional(),
-        existingCampaignIds: z.array(z.string().uuid()).optional(),
+        id: z.string().uuid(),
+        name: z.string().min(1).max(200).optional(),
+        stages: z
+          .array(
+            z.object({
+              name: z.string().min(1).max(100),
+              type: FunnelStageType,
+              platforms: z.array(DbPlatform).min(1),
+            })
+          )
+          .min(1)
+          .max(10)
+          .optional(),
+        status: z.enum(["draft", "active", "paused"]).optional(),
       })
     )
-    .mutation(({ input: _input }) => {
-      throw new TRPCError({
-        code: "METHOD_NOT_SUPPORTED",
-        message: "funnels.autoConstruct is not yet implemented",
-      });
+    .mutation(async ({ ctx, input }) => {
+      try {
+        const { id, ...fields } = input;
+        return await updateFunnel(id, fields, ctx.organizationId);
+      } catch (error) {
+        handleServiceError(error);
+      }
     }),
 });

@@ -1,64 +1,91 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
-import { protectedProcedure, router } from "../trpc.js";
+import {
+  AudienceAccessError,
+  AudienceNotFoundError,
+  getOverlaps,
+  listAudiences,
+  syncAudience,
+} from "../../services/audience.service.js";
+import { organizationProcedure, router } from "../trpc.js";
 
-const Platform = z.enum([
-  "google",
+const DbPlatform = z.enum([
   "meta",
-  "tiktok",
-  "line",
+  "google",
   "x",
-  "yahoo_japan",
+  "tiktok",
+  "line_yahoo",
+  "amazon",
+  "microsoft",
 ]);
 
+function handleServiceError(error: unknown): never {
+  if (error instanceof AudienceNotFoundError) {
+    throw new TRPCError({
+      code: "NOT_FOUND",
+      message: error.message,
+    });
+  }
+  if (error instanceof AudienceAccessError) {
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message: error.message,
+    });
+  }
+  throw new TRPCError({
+    code: "INTERNAL_SERVER_ERROR",
+    message: "An unexpected error occurred",
+    cause: error,
+  });
+}
+
 export const audiencesRouter = router({
-  list: protectedProcedure
+  list: organizationProcedure
     .input(
       z
         .object({
-          platform: Platform.optional(),
-          limit: z.number().int().min(1).max(100).default(20),
-          cursor: z.string().uuid().optional(),
+          platform: DbPlatform.optional(),
         })
         .optional()
     )
-    .query(({ input: _input }) => {
-      throw new TRPCError({
-        code: "METHOD_NOT_SUPPORTED",
-        message: "audiences.list is not yet implemented",
-      });
+    .query(async ({ ctx, input }) => {
+      try {
+        return await listAudiences(ctx.organizationId, input?.platform);
+      } catch (error) {
+        handleServiceError(error);
+      }
     }),
 
-  overlaps: protectedProcedure
+  overlaps: organizationProcedure
     .input(
       z.object({
         audienceIds: z.array(z.string().uuid()).min(2).max(5),
       })
     )
-    .query(({ input: _input }) => {
-      throw new TRPCError({
-        code: "METHOD_NOT_SUPPORTED",
-        message: "audiences.overlaps is not yet implemented",
-      });
+    .query(async ({ ctx, input }) => {
+      try {
+        return await getOverlaps(input.audienceIds, ctx.organizationId);
+      } catch (error) {
+        handleServiceError(error);
+      }
     }),
 
-  sync: protectedProcedure
+  sync: organizationProcedure
     .input(
       z.object({
         audienceId: z.string().uuid(),
-        targetPlatform: Platform,
-        mappingConfig: z
-          .object({
-            matchType: z.enum(["email", "phone", "device_id", "custom"]).default("email"),
-            consentVerified: z.boolean(),
-          })
-          .optional(),
+        targetPlatform: DbPlatform,
       })
     )
-    .mutation(({ input: _input }) => {
-      throw new TRPCError({
-        code: "METHOD_NOT_SUPPORTED",
-        message: "audiences.sync is not yet implemented",
-      });
+    .mutation(async ({ ctx, input }) => {
+      try {
+        return await syncAudience(
+          input.audienceId,
+          input.targetPlatform,
+          ctx.organizationId,
+        );
+      } catch (error) {
+        handleServiceError(error);
+      }
     }),
 });
