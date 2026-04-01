@@ -1,0 +1,35 @@
+export type {
+  CreateCampaignInput,
+  UpdateCampaignInput,
+  CreateAdGroupInput,
+  UpdateAdGroupInput,
+  CreateAdInput,
+  UpdateAdInput,
+  CreateAudienceInput,
+  AudienceListData,
+  CreativeUploadInput,
+  WebhookEventType,
+  WebhookEvent,
+  PlatformAdapter,
+  // Re-exported shared types for convenience
+  Platform,
+  OAuthTokens,
+  ConnectionStatus,
+  RateLimitConfig,
+  PlatformCreativeSpecs,
+  NormalizedCampaign,
+  NormalizedAdGroup,
+  NormalizedAd,
+  NormalizedMetrics,
+  RealtimeMetrics,
+  MetricsQuery,
+  AudienceSegment,
+  TargetingConfig,
+  CreativeContent,
+  PlatformError,
+  CampaignObjective,
+  CampaignStatus,
+} from './types';
+
+export { BaseAdapter } from './base-adapter';
+export { AdapterRegistry, adapterRegistry } from './adapter-registry';

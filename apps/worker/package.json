@@ -1,0 +1,26 @@
+{
+  "name": "@omni-ad/worker",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/worker.ts",
+    "build": "tsc",
+    "start": "node dist/worker.js",
+    "type-check": "tsc --noEmit",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@omni-ad/db": "workspace:*",
+    "@omni-ad/platform-adapters": "workspace:*",
+    "@omni-ad/queue": "workspace:*",
+    "@omni-ad/shared": "workspace:*",
+    "@omni-ad/ai-engine": "workspace:*",
+    "bullmq": "^5.30.0"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0",
+    "@types/node": "^22.0.0"
+  }
+}

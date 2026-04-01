@@ -1,0 +1,32 @@
+{
+  "name": "@omni-ad/api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "type-check": "tsc --noEmit",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@omni-ad/auth": "workspace:*",
+    "@omni-ad/db": "workspace:*",
+    "@omni-ad/platform-adapters": "workspace:*",
+    "@omni-ad/queue": "workspace:*",
+    "@omni-ad/shared": "workspace:*",
+    "@omni-ad/ai-engine": "workspace:*",
+    "@trpc/server": "^11.0.0",
+    "fastify": "^5.2.0",
+    "@fastify/cors": "^10.0.0",
+    "@fastify/helmet": "^13.0.0",
+    "superjson": "^2.2.0",
+    "zod": "^3.24.0"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0",
+    "@types/node": "^22.0.0"
+  }
+}
