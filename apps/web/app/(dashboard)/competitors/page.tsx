@@ -9,11 +9,17 @@ import {
   ChevronUp,
   Clock,
   ExternalLink,
+  BadgeJapaneseYen,
+  BarChart3,
   Globe,
   Loader2,
+  Palette,
+  Pause,
   Plus,
   RefreshCw,
+  Rocket,
   RotateCcw,
+  Search,
   Settings,
   Shield,
   Target,
@@ -22,6 +28,7 @@ import {
   X,
   Zap,
 } from 'lucide-react';
+import type { ReactNode } from 'react';
 import {
   CartesianGrid,
   Legend,
@@ -153,56 +160,56 @@ const PLATFORM_CONFIG: Record<Platform, { label: string; color: string }> = {
   amazon: { label: 'Amazon', color: 'bg-orange-500' },
 };
 
-const ALERT_TYPE_ICONS: Record<AlertType, string> = {
-  new_creative: '\uD83C\uDFA8',
-  budget_increase: '\uD83D\uDCB0',
-  new_keyword: '\uD83D\uDD0D',
-  position_change: '\uD83D\uDCC8',
-  new_campaign: '\uD83D\uDE80',
+const ALERT_TYPE_ICONS: Record<AlertType, ReactNode> = {
+  new_creative: <Palette size={16} className="text-purple-500" />,
+  budget_increase: <BadgeJapaneseYen size={16} className="text-yellow-600" />,
+  new_keyword: <Search size={16} className="text-blue-500" />,
+  position_change: <TrendingUp size={16} className="text-green-500" />,
+  new_campaign: <Rocket size={16} className="text-orange-500" />,
 };
 
 const COUNTER_ACTION_CONFIG: Record<
   CounterActionType,
-  { icon: string; label: string; badgeClass: string }
+  { icon: ReactNode; label: string; badgeClass: string }
 > = {
   bid_adjustment: {
-    icon: '\uD83D\uDCB0',
+    icon: <BadgeJapaneseYen size={16} />,
     label: '入札調整',
     badgeClass:
       'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
   },
   budget_shift: {
-    icon: '\uD83D\uDCCA',
+    icon: <BarChart3 size={16} />,
     label: '予算シフト',
     badgeClass:
       'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
   },
   creative_counter: {
-    icon: '\uD83C\uDFA8',
+    icon: <Palette size={16} />,
     label: 'クリエイティブ対抗',
     badgeClass:
       'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
   },
   targeting_expansion: {
-    icon: '\uD83C\uDFAF',
+    icon: <Target size={16} />,
     label: 'ターゲティング拡張',
     badgeClass:
       'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400',
   },
   keyword_defense: {
-    icon: '\uD83D\uDEE1',
+    icon: <Shield size={16} />,
     label: 'キーワード防御',
     badgeClass:
       'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
   },
   timing_attack: {
-    icon: '\u23F0',
+    icon: <Clock size={16} />,
     label: 'タイミング攻撃',
     badgeClass:
       'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400',
   },
   skip: {
-    icon: '\u23F8',
+    icon: <Pause size={16} />,
     label: '見送り',
     badgeClass:
       'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400',
