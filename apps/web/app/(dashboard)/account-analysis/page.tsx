@@ -38,11 +38,11 @@ const STATUS_CONFIG: Record<ConnectionStatus, { label: string; className: string
 };
 
 const MOCK_CONNECTIONS: PlatformConnection[] = [
-  { platform: 'meta', label: 'Meta Ads', status: 'connected', accountName: 'OMNI-AD Meta', lastSync: '2026-04-02T05:00:00Z', icon: 'M', lastAnalysis: '2026-04-01 14:20', score: 71 },
-  { platform: 'google', label: 'Google Ads', status: 'connected', accountName: 'OMNI-AD Google', lastSync: '2026-04-02T05:30:00Z', icon: 'G', lastAnalysis: '2026-04-03 09:30', score: 62 },
-  { platform: 'x', label: 'X Ads', status: 'expired', accountName: 'OMNI-AD X', icon: 'X' },
+  { platform: 'meta', label: 'Meta Ads', status: 'connected', accountName: '&AI auto SNS Ad Meta', lastSync: '2026-04-02T05:00:00Z', icon: 'M', lastAnalysis: '2026-04-01 14:20', score: 71 },
+  { platform: 'google', label: 'Google Ads', status: 'connected', accountName: '&AI auto SNS Ad Google', lastSync: '2026-04-02T05:30:00Z', icon: 'G', lastAnalysis: '2026-04-03 09:30', score: 62 },
+  { platform: 'x', label: 'X Ads', status: 'expired', accountName: '&AI auto SNS Ad X', icon: 'X' },
   { platform: 'tiktok', label: 'TikTok Ads', status: 'disconnected', icon: 'T' },
-  { platform: 'line_yahoo', label: 'LINE/Yahoo Ads', status: 'connected', accountName: 'OMNI-AD LINE/Yahoo', lastSync: '2026-04-01T22:00:00Z', icon: 'L', lastAnalysis: '2026-03-28 10:00', score: 78 },
+  { platform: 'line_yahoo', label: 'LINE/Yahoo Ads', status: 'connected', accountName: '&AI auto SNS Ad LINE/Yahoo', lastSync: '2026-04-01T22:00:00Z', icon: 'L', lastAnalysis: '2026-03-28 10:00', score: 78 },
   { platform: 'amazon', label: 'Amazon Ads', status: 'disconnected', icon: 'A' },
   { platform: 'microsoft', label: 'Microsoft Ads', status: 'disconnected', icon: 'MS' },
 ];

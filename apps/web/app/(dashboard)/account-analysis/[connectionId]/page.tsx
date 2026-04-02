@@ -187,7 +187,7 @@ function generateWeekdayAverage(): WeekdayAverage[] {
 const MOCK_DATA: AccountAnalysisData = {
   platformLabel: 'Google Ads',
   platformIcon: 'G',
-  accountName: 'OMNI-AD Google',
+  accountName: '&AI auto SNS Ad Google',
   overallScore: 62,
   analysisDate: '2026-04-03 09:30',
   aiSummary: 'Google Adsアカウント全体の運用効率は中程度です。特に「春のプロモーション2026」と「ブランド認知」キャンペーンが高いROASを維持しており、アカウント全体の収益性を支えています。しかし、「新規顧客獲得」キャンペーンと「ディスプレイ広告テスト」キャンペーンのパフォーマンスが著しく低下しており、これらが全体スコアを押し下げています。\n\n予算配分に関しては、パフォーマンスの低いキャンペーンに過度な予算が割り当てられている傾向が見られます。ROASが1.0を下回るキャンペーンへの支出を30%削減し、上位パフォーマーへ再配分することで、全体ROASを0.5ポイント改善できる見込みです。また、週末の支出効率が平日と比較して40%低いため、曜日別の予算調整も推奨します。',

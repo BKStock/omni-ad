@@ -106,7 +106,7 @@ export default function RegisterPage(): React.ReactElement {
       <div className="w-full max-w-md space-y-8">
         <div className="text-center">
           <h1 className="text-3xl font-bold tracking-tight text-foreground">
-            OMNI-AD
+            &AI auto SNS Ad
           </h1>
           <p className="mt-2 text-sm text-muted-foreground">
             新規アカウント登録

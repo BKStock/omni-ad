@@ -145,7 +145,7 @@ function WelcomeStep({ onNext }: { onNext: () => void }): React.ReactElement {
         <Rocket size={40} className="text-primary" />
       </div>
       <h2 className="mt-6 text-2xl font-bold text-foreground">
-        ようこそ OMNI-AD へ
+        ようこそ &AI auto SNS Ad へ
       </h2>
       <p className="mt-2 max-w-md text-sm text-muted-foreground">
         AIを活用した統合マーケティングプラットフォームで、すべての広告チャネルを一元管理しましょう。
@@ -676,7 +676,7 @@ function CompletionStep(): React.ReactElement {
         セットアップ完了！
       </h2>
       <p className="mt-2 max-w-md text-sm text-muted-foreground">
-        OMNI-ADの準備が整いました。AIがあなたのマーケティングを強力にサポートします。
+        &AI auto SNS Adの準備が整いました。AIがあなたのマーケティングを強力にサポートします。
       </p>
 
       <div className="mt-8 grid w-full max-w-lg grid-cols-1 gap-3 sm:grid-cols-3">

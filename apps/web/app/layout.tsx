@@ -9,9 +9,9 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: 'OMNI-AD | 統合マーケティング自動化',
+  title: '&AI auto SNS Ad | 統合マーケティング自動化',
   description:
-    'AI搭載のクロスチャネルマーケティング自動化プラットフォーム。広告運用、クリエイティブ生成、予算最適化を一元管理。',
+    'AI-powered multi-channel marketing automation by BK Group. 広告運用、クリエイティブ生成、予算最適化を一元管理。',
 };
 
 export default function RootLayout({

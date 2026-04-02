@@ -72,11 +72,11 @@ const ROLE_LABELS: Record<UserRole, string> = {
 };
 
 const MOCK_CONNECTIONS: PlatformConnection[] = [
-  { platform: 'meta', label: 'Meta Ads', status: 'connected', accountName: 'OMNI-AD Meta', lastSync: '2026-04-02T05:00:00Z', icon: 'M' },
-  { platform: 'google', label: 'Google Ads', status: 'connected', accountName: 'OMNI-AD Google', lastSync: '2026-04-02T05:30:00Z', icon: 'G' },
-  { platform: 'x', label: 'X Ads', status: 'expired', accountName: 'OMNI-AD X', icon: 'X' },
+  { platform: 'meta', label: 'Meta Ads', status: 'connected', accountName: '&AI auto SNS Ad Meta', lastSync: '2026-04-02T05:00:00Z', icon: 'M' },
+  { platform: 'google', label: 'Google Ads', status: 'connected', accountName: '&AI auto SNS Ad Google', lastSync: '2026-04-02T05:30:00Z', icon: 'G' },
+  { platform: 'x', label: 'X Ads', status: 'expired', accountName: '&AI auto SNS Ad X', icon: 'X' },
   { platform: 'tiktok', label: 'TikTok Ads', status: 'disconnected', icon: 'T' },
-  { platform: 'line_yahoo', label: 'LINE/Yahoo Ads', status: 'connected', accountName: 'OMNI-AD LINE/Yahoo', lastSync: '2026-04-01T22:00:00Z', icon: 'L' },
+  { platform: 'line_yahoo', label: 'LINE/Yahoo Ads', status: 'connected', accountName: '&AI auto SNS Ad LINE/Yahoo', lastSync: '2026-04-01T22:00:00Z', icon: 'L' },
   { platform: 'amazon', label: 'Amazon Ads', status: 'disconnected', icon: 'A' },
   { platform: 'microsoft', label: 'Microsoft Ads', status: 'disconnected', icon: 'MS' },
 ];
@@ -383,7 +383,7 @@ function ApiTab(): React.ReactElement {
   return (
     <div className="space-y-6">
       <p className="text-sm text-muted-foreground">
-        APIキーを使用してOMNI-AD APIにプログラムからアクセスできます。
+        APIキーを使用して&AI auto SNS Ad APIにプログラムからアクセスできます。
       </p>
 
       {/* API Key display */}

@@ -679,7 +679,7 @@ function CodeModal({
 }): React.ReactElement | null {
   if (!open || !endpoint) return null;
 
-  const pixelSnippet = `<!-- OMNI-AD Conversion Tracking -->
+  const pixelSnippet = `<!-- &AI auto SNS Ad Conversion Tracking -->
 <script>
 !function(o,m,n,i){o.OmniAd=o.OmniAd||function(){
 (o.OmniAd.q=o.OmniAd.q||[]).push(arguments)};

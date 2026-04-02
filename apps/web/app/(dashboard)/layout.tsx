@@ -510,7 +510,7 @@ export default function DashboardLayout({
         {/* Sidebar header */}
         <div className="flex h-16 items-center justify-between border-b border-sidebar-accent px-4">
           {sidebarOpen && (
-            <span className="text-lg font-bold tracking-tight">OMNI-AD</span>
+            <span className="text-lg font-bold tracking-tight">&amp;AI auto SNS Ad</span>
           )}
           <button
             type="button"

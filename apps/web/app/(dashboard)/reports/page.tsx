@@ -362,7 +362,7 @@ function generateReportHTML(report: Report): string {
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>${report.title} - OMNI-AD</title>
+  <title>${report.title} - &AI auto SNS Ad</title>
   <style>
     body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; max-width: 800px; margin: 0 auto; padding: 40px 20px; color: #1a1a1a; }
     h1 { font-size: 24px; font-weight: 700; border-bottom: 2px solid #2563eb; padding-bottom: 12px; }
@@ -383,7 +383,7 @@ function generateReportHTML(report: Report): string {
   </div>
   ${insightsHtml}
   <footer style="margin-top:40px;padding-top:16px;border-top:1px solid #e2e8f0;font-size:12px;color:#94a3b8;">
-    OMNI-AD 自動レポート
+    &AI auto SNS Ad 自動レポート
   </footer>
 </body>
 </html>`;
