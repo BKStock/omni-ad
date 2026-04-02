@@ -17,6 +17,7 @@ import { platformsRouter } from "./procedures/platforms.js";
 import { reportsRouter } from "./procedures/reports.js";
 import { rulesRouter } from "./procedures/rules.js";
 import { aiAutopilotRouter } from "./procedures/ai-autopilot.js";
+import { accountAnalysisRouter } from "./procedures/account-analysis.js";
 import { competitiveIntelRouter } from "./procedures/competitive-intel.js";
 
 export const appRouter = router({
@@ -34,6 +35,7 @@ export const appRouter = router({
   architect: architectRouter,
   conversions: conversionsRouter,
   approvals: approvalsRouter,
+  accountAnalysis: accountAnalysisRouter,
   aiAutopilot: aiAutopilotRouter,
   competitiveIntel: competitiveIntelRouter,
   dashboard: dashboardRouter,

@@ -16,6 +16,7 @@ import {
   LayoutDashboard,
   LogOut,
   Menu,
+  ScanSearch,
   ScrollText,
   Settings,
   ShieldAlert,
@@ -100,6 +101,7 @@ const NAV_GROUPS: NavGroup[] = [
   {
     title: '管理',
     items: [
+      { label: 'アカウント分析', href: '/account-analysis', icon: <ScanSearch size={20} /> },
       { label: 'クライアント管理', href: '/clients', icon: <Building2 size={20} /> },
       { label: '承認管理', href: '/approvals', icon: <CheckSquare size={20} />, badge: 5 },
       { label: '設定', href: '/settings', icon: <Settings size={20} /> },

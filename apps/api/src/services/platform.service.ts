@@ -131,6 +131,40 @@ export async function syncNow(
   return { jobId: job.id ?? connectionId };
 }
 
+// ---------------------------------------------------------------------------
+// Auto-analysis hook
+// ---------------------------------------------------------------------------
+// When the OAuth callback stores tokens and sets status to 'active',
+// call this function to trigger automatic account analysis.
+// Usage (in the future OAuth callback handler):
+//
+//   import { onConnectionActivated } from './platform.service.js';
+//   await onConnectionActivated(organizationId, connectionId);
+//
+// For now, the settings UI can call the accountAnalysis.analyze tRPC
+// procedure with { connectionId, analyzeOnConnect: true } immediately
+// after a platform is connected.
+// ---------------------------------------------------------------------------
+
+export async function onConnectionActivated(
+  organizationId: string,
+  connectionId: string,
+): Promise<void> {
+  // Lazy import to avoid circular dependency
+  const { analyzeAccount } = await import('./account-analyzer.service.js');
+
+  try {
+    await analyzeAccount(organizationId, connectionId);
+  } catch (err: unknown) {
+    // Analysis failure should not break the connection flow.
+    // Log and continue -- the user can trigger re-analysis from the UI.
+    const message = err instanceof Error ? err.message : String(err);
+    console.error(
+      `[platform.service] Auto-analysis failed for connection ${connectionId}: ${message}`,
+    );
+  }
+}
+
 export class PlatformConnectionNotFoundError extends Error {
   constructor(connectionId: string) {
     super(`Platform connection not found: ${connectionId}`);

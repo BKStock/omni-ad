@@ -23,3 +23,4 @@ export * as emergencyService from './emergency.service.js';
 export * as ltvTrackingService from './ltv-tracking.service.js';
 export * as reportExportService from './report-export.service.js';
 export * as reportGeneratorService from './report-generator.service.js';
+export * as accountAnalyzerService from './account-analyzer.service.js';

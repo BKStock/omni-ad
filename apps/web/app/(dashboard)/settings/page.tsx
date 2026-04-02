@@ -12,6 +12,7 @@ import {
   Link2,
   Loader2,
   RefreshCw,
+  ScanSearch,
   Shield,
   Sparkles,
   Trash2,
@@ -91,10 +92,19 @@ const MOCK_TEAM: TeamMember[] = [
 function PlatformsTab(): React.ReactElement {
   const [connecting, setConnecting] = useState<Platform | null>(null);
   const [disconnecting, setDisconnecting] = useState<Platform | null>(null);
+  const [analyzing, setAnalyzing] = useState<Platform | null>(null);
 
   function handleConnect(platform: Platform): void {
     setConnecting(platform);
     setTimeout(() => setConnecting(null), 2000);
+  }
+
+  function handleAnalyze(platform: Platform): void {
+    setAnalyzing(platform);
+    // Navigate after a brief loading state
+    setTimeout(() => {
+      window.location.href = `/account-analysis/${platform}`;
+    }, 500);
   }
 
   return (
@@ -127,6 +137,17 @@ function PlatformsTab(): React.ReactElement {
                 <span className={cn('inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium', statusConfig.className)}>
                   {statusConfig.label}
                 </span>
+                {conn.status === 'connected' && (
+                  <button
+                    type="button"
+                    onClick={() => handleAnalyze(conn.platform)}
+                    disabled={analyzing === conn.platform}
+                    className="inline-flex items-center gap-1 rounded-md border border-primary/30 bg-primary/5 px-3 py-1.5 text-xs font-medium text-primary hover:bg-primary/10 disabled:opacity-50"
+                  >
+                    {analyzing === conn.platform ? <Loader2 size={12} className="animate-spin" /> : <ScanSearch size={12} />}
+                    {analyzing === conn.platform ? '分析中...' : '分析'}
+                  </button>
+                )}
                 {conn.status === 'connected' ? (
                   <button
                     type="button"

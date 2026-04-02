@@ -16,3 +16,4 @@ export * from './approvals';
 export * from './ai-settings';
 export * from './competitive-intel';
 export * from './ltv-tracking';
+export * from './account-analysis';
