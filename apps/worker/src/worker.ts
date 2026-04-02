@@ -10,6 +10,7 @@ import { processMetricsPull } from './processors/metrics-pull.js';
 import { processAnomalyDetection } from './processors/anomaly-detection.js';
 import { processRulesEvaluation } from './processors/rules-evaluation.js';
 import { processAiAutopilot } from './processors/ai-autopilot.js';
+import { processCompetitorMonitor } from './processors/competitor-monitor.js';
 
 const workers: Worker[] = [];
 
@@ -91,6 +92,11 @@ function startWorkers(): void {
       QUEUE_NAMES.AI_AUTOPILOT,
       processAiAutopilot,
       QUEUE_CONFIGS[QUEUE_NAMES.AI_AUTOPILOT].concurrency
+    ),
+    createWorker(
+      QUEUE_NAMES.COMPETITOR_MONITOR,
+      processCompetitorMonitor,
+      QUEUE_CONFIGS[QUEUE_NAMES.COMPETITOR_MONITOR].concurrency
     )
   );
 

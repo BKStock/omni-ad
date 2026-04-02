@@ -13,6 +13,7 @@ import { platformsRouter } from "./procedures/platforms.js";
 import { reportsRouter } from "./procedures/reports.js";
 import { rulesRouter } from "./procedures/rules.js";
 import { aiAutopilotRouter } from "./procedures/ai-autopilot.js";
+import { competitiveIntelRouter } from "./procedures/competitive-intel.js";
 
 export const appRouter = router({
   campaigns: campaignsRouter,
@@ -29,6 +30,7 @@ export const appRouter = router({
   conversions: conversionsRouter,
   approvals: approvalsRouter,
   aiAutopilot: aiAutopilotRouter,
+  competitiveIntel: competitiveIntelRouter,
 });
 
 export type AppRouter = typeof appRouter;

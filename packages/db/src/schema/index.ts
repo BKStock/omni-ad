@@ -14,3 +14,4 @@ export * from './notifications';
 export * from './conversions';
 export * from './approvals';
 export * from './ai-settings';
+export * from './competitive-intel';

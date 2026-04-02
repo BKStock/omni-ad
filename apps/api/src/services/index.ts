@@ -13,3 +13,6 @@ export * as pacingService from './pacing.service.js';
 export * as conversionService from './conversion.service.js';
 export * as approvalService from './approval.service.js';
 export * as aiAutopilotService from './ai-autopilot.service.js';
+export * as competitorMonitorService from './competitor-monitor.service.js';
+export * as auctionIntelligenceService from './auction-intelligence.service.js';
+export * as autoCounterService from './auto-counter.service.js';

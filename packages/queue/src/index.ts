@@ -24,6 +24,7 @@ export {
   anomalyDetectionJobSchema,
   evaluateRulesJobSchema,
   autopilotCycleJobSchema,
+  competitorMonitorJobSchema,
   type SyncCampaignJob,
   type SyncAdGroupJob,
   type PullMetricsJob,
@@ -42,4 +43,5 @@ export {
   type AnomalyDetectionJob,
   type EvaluateRulesJob,
   type AutopilotCycleJob,
+  type CompetitorMonitorJob,
 } from './jobs.js';

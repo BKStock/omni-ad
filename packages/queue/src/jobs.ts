@@ -169,6 +169,11 @@ export const autopilotCycleJobSchema = z.object({
   organizationId: z.string().uuid(),
 });
 
+// Competitor Monitor Jobs
+export const competitorMonitorJobSchema = z.object({
+  organizationId: z.string().uuid(),
+});
+
 // Job type union
 export type SyncCampaignJob = z.infer<typeof syncCampaignJobSchema>;
 export type SyncAdGroupJob = z.infer<typeof syncAdGroupJobSchema>;
@@ -188,3 +193,4 @@ export type ProcessWebhookJob = z.infer<typeof processWebhookJobSchema>;
 export type AnomalyDetectionJob = z.infer<typeof anomalyDetectionJobSchema>;
 export type EvaluateRulesJob = z.infer<typeof evaluateRulesJobSchema>;
 export type AutopilotCycleJob = z.infer<typeof autopilotCycleJobSchema>;
+export type CompetitorMonitorJob = z.infer<typeof competitorMonitorJobSchema>;

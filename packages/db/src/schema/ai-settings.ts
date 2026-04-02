@@ -14,6 +14,7 @@ import {
 } from 'drizzle-orm/pg-core';
 
 import { campaigns } from './campaigns';
+import { counterStrategyEnum } from './enums';
 import { organizations } from './organizations';
 
 // ---------------------------------------------------------------------------
@@ -56,6 +57,12 @@ export const decisionStatusEnum = pgEnum('decision_status', [
   'skipped',
 ]);
 
+export const competitorScanFrequencyEnum = pgEnum('competitor_scan_frequency', [
+  'every_30min',
+  'hourly',
+  'every_4h',
+]);
+
 // ---------------------------------------------------------------------------
 // Tables
 // ---------------------------------------------------------------------------
@@ -90,6 +97,20 @@ export const aiSettings = pgTable('ai_settings', {
     precision: 14,
     scale: 2,
   }),
+  competitiveMonitorEnabled: boolean('competitive_monitor_enabled')
+    .notNull()
+    .default(false),
+  autoCounterEnabled: boolean('auto_counter_enabled')
+    .notNull()
+    .default(false),
+  defaultCounterStrategy: counterStrategyEnum('default_counter_strategy')
+    .notNull()
+    .default('defensive'),
+  competitorScanFrequency: competitorScanFrequencyEnum(
+    'competitor_scan_frequency',
+  )
+    .notNull()
+    .default('hourly'),
   createdAt: timestamp('created_at', { withTimezone: true })
     .notNull()
     .default(sql`now()`),

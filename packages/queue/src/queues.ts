@@ -11,6 +11,7 @@ export const QUEUE_NAMES = {
   ANOMALY_DETECTION: 'anomaly-detection',
   RULES_EVALUATION: 'rules-evaluation',
   AI_AUTOPILOT: 'ai-autopilot',
+  COMPETITOR_MONITOR: 'competitor-monitor',
 } as const;
 
 export type QueueName = (typeof QUEUE_NAMES)[keyof typeof QUEUE_NAMES];
@@ -134,6 +135,17 @@ export const QUEUE_CONFIGS: Record<QueueName, QueueConfig> = {
     name: QUEUE_NAMES.AI_AUTOPILOT,
     options: {},
     concurrency: 1,
+    defaultJobOptions: {
+      attempts: 3,
+      backoff: { type: 'exponential', delay: 30_000 },
+      removeOnComplete: { count: 200 },
+      removeOnFail: { count: 500 },
+    },
+  },
+  [QUEUE_NAMES.COMPETITOR_MONITOR]: {
+    name: QUEUE_NAMES.COMPETITOR_MONITOR,
+    options: {},
+    concurrency: 2,
     defaultJobOptions: {
       attempts: 3,
       backoff: { type: 'exponential', delay: 30_000 },

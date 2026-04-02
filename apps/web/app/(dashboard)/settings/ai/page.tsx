@@ -12,6 +12,7 @@ import {
   Save,
   Shield,
   Sparkles,
+  Swords,
   Zap,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -24,12 +25,21 @@ type AutopilotMode = 'full_auto' | 'suggest_only' | 'approve_required';
 type OptimizationFrequency = 'hourly' | 'every_4h' | 'daily';
 type RiskTolerance = 'conservative' | 'standard' | 'aggressive';
 type ConnectionStatus = 'connected' | 'disconnected' | 'testing';
+type CompetitorStrategy = 'aggressive' | 'defensive' | 'opportunistic';
+type ScanFrequency = 'every_30m' | 'every_1h' | 'every_4h';
 
 interface AutomationScope {
   budgetAutoAdjust: boolean;
   maxChangeRate: number;
   creativeAutoRotation: boolean;
   campaignAutoCreation: boolean;
+}
+
+interface CompetitorIntelligenceSettings {
+  monitoringEnabled: boolean;
+  autoCounterEnabled: boolean;
+  defaultStrategy: CompetitorStrategy;
+  scanFrequency: ScanFrequency;
 }
 
 interface AiSettings {
@@ -43,6 +53,7 @@ interface AiSettings {
   riskTolerance: RiskTolerance;
   targetRoas: number | null;
   monthlyBudgetCap: number | null;
+  competitorIntelligence: CompetitorIntelligenceSettings;
 }
 
 interface ModeOption {
@@ -64,6 +75,17 @@ interface RiskOption {
   value: RiskTolerance;
   label: string;
   description: string;
+}
+
+interface CompetitorStrategyOption {
+  value: CompetitorStrategy;
+  label: string;
+  description: string;
+}
+
+interface ScanFrequencyOption {
+  value: ScanFrequency;
+  label: string;
 }
 
 // ============================================================
@@ -124,6 +146,30 @@ const RISK_OPTIONS: RiskOption[] = [
   },
 ];
 
+const COMPETITOR_STRATEGY_OPTIONS: CompetitorStrategyOption[] = [
+  {
+    value: 'aggressive',
+    label: '攻撃的',
+    description: 'CPCを積極的に上げて競合を押し出す',
+  },
+  {
+    value: 'defensive',
+    label: '防御的',
+    description: '現在のポジションを最小コストで維持',
+  },
+  {
+    value: 'opportunistic',
+    label: '機会主義',
+    description: '競合の弱い時間帯・市場を狙い撃ち',
+  },
+];
+
+const SCAN_FREQUENCY_OPTIONS: ScanFrequencyOption[] = [
+  { value: 'every_30m', label: '30分ごと' },
+  { value: 'every_1h', label: '1時間ごと' },
+  { value: 'every_4h', label: '4時間ごと' },
+];
+
 const INITIAL_SETTINGS: AiSettings = {
   apiKey: '',
   maskedKey: 'sk-ant...****7f2a',
@@ -140,6 +186,12 @@ const INITIAL_SETTINGS: AiSettings = {
   riskTolerance: 'standard',
   targetRoas: 3.0,
   monthlyBudgetCap: 5000000,
+  competitorIntelligence: {
+    monitoringEnabled: true,
+    autoCounterEnabled: true,
+    defaultStrategy: 'defensive',
+    scanFrequency: 'every_1h',
+  },
 };
 
 // ============================================================
@@ -646,6 +698,177 @@ function OptimizationSettingsSection({
   );
 }
 
+function CompetitiveIntelligenceSettingsSection({
+  settings,
+  onSettingsChange,
+}: {
+  settings: AiSettings;
+  onSettingsChange: (update: Partial<AiSettings>) => void;
+}): React.ReactElement {
+  const ci = settings.competitorIntelligence;
+
+  function handleCiChange(
+    update: Partial<CompetitorIntelligenceSettings>
+  ): void {
+    onSettingsChange({
+      competitorIntelligence: { ...ci, ...update },
+    });
+  }
+
+  return (
+    <section className="rounded-lg border border-border bg-card p-6">
+      <div className="mb-6 flex items-center gap-2">
+        <Swords size={20} className="text-primary" />
+        <h2 className="text-lg font-semibold text-foreground">
+          競合インテリジェンス設定
+        </h2>
+      </div>
+
+      <div className="space-y-6">
+        {/* Monitoring toggle */}
+        <div className="flex items-center justify-between rounded-lg border border-border p-4">
+          <div>
+            <p className="text-sm font-medium text-foreground">
+              競合監視
+            </p>
+            <p className="text-xs text-muted-foreground">
+              競合の広告活動をリアルタイムで監視します
+            </p>
+          </div>
+          <label className="relative inline-flex cursor-pointer items-center">
+            <input
+              type="checkbox"
+              checked={ci.monitoringEnabled}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                handleCiChange({
+                  monitoringEnabled: e.target.checked,
+                  autoCounterEnabled: e.target.checked
+                    ? ci.autoCounterEnabled
+                    : false,
+                })
+              }
+              className="peer sr-only"
+              aria-label="競合監視を有効化"
+            />
+            <div className="h-6 w-10 rounded-full bg-muted transition-colors peer-checked:bg-primary" />
+            <div className="absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform peer-checked:translate-x-4" />
+          </label>
+        </div>
+
+        {/* Auto counter toggle */}
+        <div
+          className={cn(
+            'flex items-center justify-between rounded-lg border border-border p-4',
+            !ci.monitoringEnabled && 'pointer-events-none opacity-40'
+          )}
+        >
+          <div>
+            <p className="text-sm font-medium text-foreground">
+              自動対抗
+            </p>
+            <p className="text-xs text-muted-foreground">
+              AIが自動的に競合への対抗アクションを実行します
+            </p>
+          </div>
+          <label className="relative inline-flex cursor-pointer items-center">
+            <input
+              type="checkbox"
+              checked={ci.autoCounterEnabled}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                handleCiChange({
+                  autoCounterEnabled: e.target.checked,
+                })
+              }
+              disabled={!ci.monitoringEnabled}
+              className="peer sr-only"
+              aria-label="自動対抗を有効化"
+            />
+            <div className="h-6 w-10 rounded-full bg-muted transition-colors peer-checked:bg-primary" />
+            <div className="absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform peer-checked:translate-x-4" />
+          </label>
+        </div>
+
+        {/* Default strategy */}
+        <div
+          className={cn(
+            !ci.monitoringEnabled && 'pointer-events-none opacity-40'
+          )}
+        >
+          <h3 className="mb-2 text-sm font-medium text-foreground">
+            デフォルト対抗戦略
+          </h3>
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+            {COMPETITOR_STRATEGY_OPTIONS.map((opt) => {
+              const isSelected = ci.defaultStrategy === opt.value;
+              return (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() =>
+                    handleCiChange({ defaultStrategy: opt.value })
+                  }
+                  disabled={!ci.monitoringEnabled}
+                  className={cn(
+                    'rounded-lg border-2 p-3 text-left transition-all',
+                    isSelected
+                      ? 'border-primary bg-primary/5'
+                      : 'border-border hover:border-border/80'
+                  )}
+                >
+                  <p
+                    className={cn(
+                      'text-sm font-semibold',
+                      isSelected
+                        ? 'text-primary'
+                        : 'text-foreground'
+                    )}
+                  >
+                    {opt.label}
+                  </p>
+                  <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
+                    {opt.description}
+                  </p>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Scan frequency */}
+        <div
+          className={cn(
+            !ci.monitoringEnabled && 'pointer-events-none opacity-40'
+          )}
+        >
+          <h3 className="mb-2 text-sm font-medium text-foreground">
+            スキャン頻度
+          </h3>
+          <div className="flex gap-2">
+            {SCAN_FREQUENCY_OPTIONS.map((opt) => (
+              <button
+                key={opt.value}
+                type="button"
+                onClick={() =>
+                  handleCiChange({ scanFrequency: opt.value })
+                }
+                disabled={!ci.monitoringEnabled}
+                className={cn(
+                  'rounded-md border px-4 py-2 text-sm font-medium transition-colors',
+                  ci.scanFrequency === opt.value
+                    ? 'border-primary bg-primary/10 text-primary'
+                    : 'border-border text-muted-foreground hover:bg-muted/50'
+                )}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 // ============================================================
 // Main Page
 // ============================================================
@@ -697,6 +920,7 @@ export default function AiSettingsPage(): React.ReactElement {
       <ApiKeySection settings={settings} onSettingsChange={handleSettingsChange} />
       <AutopilotModeSection settings={settings} onSettingsChange={handleSettingsChange} />
       <OptimizationSettingsSection settings={settings} onSettingsChange={handleSettingsChange} />
+      <CompetitiveIntelligenceSettingsSection settings={settings} onSettingsChange={handleSettingsChange} />
 
       {/* Save button */}
       <div className="sticky bottom-4 flex items-center justify-between rounded-lg border border-border bg-card p-4 shadow-lg">

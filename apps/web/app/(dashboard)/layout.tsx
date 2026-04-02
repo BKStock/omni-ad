@@ -68,7 +68,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: 'A/Bテスト', href: '/ab-tests', icon: <FlaskConical size={20} /> },
   { label: '自動ルール', href: '/auto-rules', icon: <Workflow size={20} /> },
   { label: '承認管理', href: '/approvals', icon: <CheckSquare size={20} />, badge: 5 },
-  { label: '競合分析', href: '/competitors', icon: <Swords size={20} /> },
+  { label: '競合インテリジェンス', href: '/competitors', icon: <Swords size={20} />, badge: 3 },
   { label: '設定', href: '/settings', icon: <Settings size={20} /> },
 ];
 

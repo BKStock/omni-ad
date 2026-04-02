@@ -76,3 +76,9 @@ export const touchpointTypeEnum = pgEnum('touchpoint_type', [
   'view',
   'conversion',
 ]);
+
+export const counterStrategyEnum = pgEnum('counter_strategy', [
+  'aggressive',
+  'defensive',
+  'opportunistic',
+]);
