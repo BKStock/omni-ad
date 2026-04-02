@@ -52,7 +52,7 @@ interface Notification {
 // ============================================================
 
 const NAV_ITEMS: NavItem[] = [
-  { label: 'ダッシュボード', href: '/', icon: <Home size={20} /> },
+  { label: 'ダッシュボード', href: '/home', icon: <Home size={20} /> },
   { label: 'キャンペーン', href: '/campaigns', icon: <LayoutDashboard size={20} /> },
   { label: 'クリエイティブ', href: '/creatives', icon: <BrainCircuit size={20} /> },
   { label: '分析', href: '/analytics', icon: <BarChart3 size={20} /> },
