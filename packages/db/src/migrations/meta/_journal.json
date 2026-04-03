@@ -1,0 +1,13 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1775224580257,
+      "tag": "0000_magenta_madame_masque",
+      "breakpoints": true
+    }
+  ]
+}

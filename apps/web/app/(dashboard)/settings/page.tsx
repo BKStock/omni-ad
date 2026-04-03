@@ -93,15 +93,37 @@ function PlatformsTab(): React.ReactElement {
   const [connecting, setConnecting] = useState<Platform | null>(null);
   const [disconnecting, setDisconnecting] = useState<Platform | null>(null);
   const [analyzing, setAnalyzing] = useState<Platform | null>(null);
+  const [connections, setConnections] = useState(MOCK_CONNECTIONS);
 
   function handleConnect(platform: Platform): void {
     setConnecting(platform);
-    setTimeout(() => setConnecting(null), 2000);
+    // OAuth接続フロー（現在はモック: 2秒後に接続済みに変更）
+    setTimeout(() => {
+      setConnections(prev => prev.map(c => 
+        c.platform === platform 
+          ? { ...c, status: 'connected' as const, accountName: `OMNI-AD ${platform.toUpperCase()}`, lastSync: new Date().toISOString() }
+          : c
+      ));
+      setConnecting(null);
+      showToast(`${platform.toUpperCase()} Adsを接続しました`);
+    }, 2000);
+  }
+
+  function handleDisconnect(platform: Platform): void {
+    setDisconnecting(platform);
+    setTimeout(() => {
+      setConnections(prev => prev.map(c =>
+        c.platform === platform
+          ? { ...c, status: 'disconnected' as const, accountName: undefined, lastSync: undefined }
+          : c
+      ));
+      setDisconnecting(null);
+      showToast(`${platform.toUpperCase()} Adsを切断しました`);
+    }, 1500);
   }
 
   function handleAnalyze(platform: Platform): void {
     setAnalyzing(platform);
-    // Navigate after a brief loading state
     setTimeout(() => {
       window.location.href = `/account-analysis/${platform}`;
     }, 500);
@@ -113,7 +135,7 @@ function PlatformsTab(): React.ReactElement {
         広告プラットフォームとの接続を管理します。OAuthで安全に接続されます。
       </p>
       <div className="space-y-3">
-        {MOCK_CONNECTIONS.map((conn) => {
+        {connections.map((conn) => {
           const statusConfig = STATUS_CONFIG[conn.status];
           return (
             <div key={conn.platform} className="flex items-center justify-between rounded-lg border border-border p-4">
@@ -152,15 +174,7 @@ function PlatformsTab(): React.ReactElement {
                   <button
                     type="button"
                     disabled={disconnecting === conn.platform}
-                    onClick={() => {
-                      if (window.confirm(`${conn.label}との接続を切断しますか？`)) {
-                        setDisconnecting(conn.platform);
-                        setTimeout(() => {
-                          setDisconnecting(null);
-                          showToast(`${conn.label}を切断しました`);
-                        }, 1500);
-                      }
-                    }}
+                    onClick={() => handleDisconnect(conn.platform)}
                     className="inline-flex items-center gap-1 rounded-md border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-destructive disabled:opacity-50"
                   >
                     {disconnecting === conn.platform ? <Loader2 size={12} className="animate-spin" /> : <Unlink size={12} />}

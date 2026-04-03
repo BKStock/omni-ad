@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Activity,
   AlertTriangle,
@@ -26,6 +26,12 @@ import {
 } from 'recharts';
 import { cn } from '@/lib/utils';
 import { trpc } from '@/lib/trpc';
+import {
+  getCampaigns,
+  getCrossplatformSummary,
+  type Campaign as EngineCampaign,
+  type CrossPlatformSummary,
+} from '@/lib/engine-client';
 
 // ============================================================
 // Types
@@ -666,32 +672,119 @@ export function DashboardClient(): React.ReactElement {
   const [alertDetail, setAlertDetail] = useState<Alert | null>(null);
   const [dismissedAlerts, setDismissedAlerts] = useState<Set<string>>(new Set());
   const [stoppedAlerts, setStoppedAlerts] = useState<Set<string>>(new Set());
+  const [engineSummary, setEngineSummary] = useState<CrossPlatformSummary | null>(null);
+  const [engineCampaigns, setEngineCampaigns] = useState<EngineCampaign[] | null>(null);
+  const [engineLoading, setEngineLoading] = useState(true);
+  const [engineLastFetch, setEngineLastFetch] = useState<Date | null>(null);
 
   // tRPC queries with fallback to mock data
   const overviewQuery = trpc.dashboard.overview.useQuery(undefined, { retry: false, refetchOnWindowFocus: false });
   const healthQuery = trpc.dashboard.healthScores.useQuery(undefined, { retry: false, refetchOnWindowFocus: false });
   const activityQuery = trpc.dashboard.activity.useQuery({}, { retry: false, refetchOnWindowFocus: false });
 
-  // Determine last update time from the most recently fetched query
-  const lastFetchedAt = overviewQuery.dataUpdatedAt || healthQuery.dataUpdatedAt || activityQuery.dataUpdatedAt;
-  const lastUpdatedLabel = lastFetchedAt > 0
-    ? formatTimeAgo(new Date(lastFetchedAt))
+  async function fetchEngineData(): Promise<void> {
+    setEngineLoading(true);
+    try {
+      const [summaryRes, campaignsRes] = await Promise.allSettled([
+        getCrossplatformSummary(),
+        getCampaigns(),
+      ]);
+      if (summaryRes.status === 'fulfilled') {
+        setEngineSummary(summaryRes.value);
+      }
+      if (campaignsRes.status === 'fulfilled') {
+        const raw = campaignsRes.value;
+        const list = raw.campaigns ?? raw.data ?? raw.items ?? [];
+        if (list.length > 0) setEngineCampaigns(list);
+      }
+      setEngineLastFetch(new Date());
+    } catch {
+      // Silent — use mock data
+    } finally {
+      setEngineLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    void fetchEngineData();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Build KPI data from engine summary or fall back to mock
+  const kpiFromEngine: KpiCardData[] | null = engineSummary
+    ? [
+        {
+          label: '総広告費（今日）',
+          value: engineSummary.total_spend != null
+            ? new Intl.NumberFormat('ja-JP', { style: 'currency', currency: 'JPY' }).format(engineSummary.total_spend)
+            : MOCK_KPI[0].value,
+          icon: MOCK_KPI[0].icon,
+        },
+        {
+          label: '総収益（今日）',
+          value: engineSummary.total_revenue != null
+            ? new Intl.NumberFormat('ja-JP', { style: 'currency', currency: 'JPY' }).format(engineSummary.total_revenue)
+            : MOCK_KPI[1].value,
+          icon: MOCK_KPI[1].icon,
+        },
+        {
+          label: '総ROAS',
+          value: engineSummary.total_roas != null
+            ? `${Number(engineSummary.total_roas).toFixed(2)}x`
+            : MOCK_KPI[2].value,
+          icon: MOCK_KPI[2].icon,
+        },
+        {
+          label: 'アクティブキャンペーン',
+          value: engineSummary.active_campaigns != null
+            ? String(engineSummary.active_campaigns)
+            : MOCK_KPI[3].value,
+          subLabel: engineSummary.total_campaigns != null
+            ? `/ ${engineSummary.total_campaigns} キャンペーン`
+            : MOCK_KPI[3].subLabel,
+          icon: MOCK_KPI[3].icon,
+        },
+      ]
     : null;
 
-  // Use real data if available, otherwise fall back to mock
-  const kpiData: KpiCardData[] = overviewQuery.error
-    ? MOCK_KPI
-    : (overviewQuery.data as KpiCardData[] | undefined) ?? MOCK_KPI;
+  // Build campaign health from engine campaigns
+  const campaignHealthFromEngine: CampaignHealth[] | null = engineCampaigns
+    ? engineCampaigns.slice(0, 6).map((c) => ({
+        id: c.id,
+        name: c.name,
+        healthScore: Math.min(100, Math.max(0, Math.round((c.roas ?? 1) * 20))),
+        platforms: (c.platforms ?? ['meta']) as Platform[],
+        dailySpend: c.spend ?? 0,
+        roas: c.roas ?? 0,
+        status: (c.status === 'active' ? 'active' : c.status === 'paused' ? 'paused' : 'active') as CampaignHealthStatus,
+      }))
+    : null;
 
-  const campaignHealth: CampaignHealth[] = healthQuery.error
+  // Determine last update time
+  const lastFetchedAt = overviewQuery.dataUpdatedAt || healthQuery.dataUpdatedAt || activityQuery.dataUpdatedAt;
+  const lastUpdatedLabel = engineLastFetch
+    ? formatTimeAgo(engineLastFetch)
+    : lastFetchedAt > 0
+      ? formatTimeAgo(new Date(lastFetchedAt))
+      : null;
+
+  // Use real data if available, otherwise fall back to mock
+  const kpiData: KpiCardData[] = kpiFromEngine ?? (overviewQuery.error
+    ? MOCK_KPI
+    : (overviewQuery.data as KpiCardData[] | undefined) ?? MOCK_KPI);
+
+  const campaignHealth: CampaignHealth[] = campaignHealthFromEngine ?? (healthQuery.error
     ? MOCK_CAMPAIGN_HEALTH
-    : (healthQuery.data as CampaignHealth[] | undefined) ?? MOCK_CAMPAIGN_HEALTH;
+    : (healthQuery.data as CampaignHealth[] | undefined) ?? MOCK_CAMPAIGN_HEALTH);
 
   const activityData: ActivityItem[] = activityQuery.error
     ? MOCK_ACTIVITY
     : (activityQuery.data as unknown as ActivityItem[] | undefined) ?? MOCK_ACTIVITY;
 
+  const isRefreshing = engineLoading || overviewQuery.isFetching || healthQuery.isFetching || activityQuery.isFetching;
+
   function handleRefresh(): void {
+    void fetchEngineData();
     overviewQuery.refetch().catch(() => { /* fallback to mock */ });
     healthQuery.refetch().catch(() => { /* fallback to mock */ });
     activityQuery.refetch().catch(() => { /* fallback to mock */ });
@@ -730,15 +823,13 @@ export function DashboardClient(): React.ReactElement {
           <button
             type="button"
             onClick={handleRefresh}
-            disabled={overviewQuery.isFetching || healthQuery.isFetching || activityQuery.isFetching}
+            disabled={isRefreshing}
             className="inline-flex items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground disabled:opacity-50"
             aria-label="データを更新"
           >
             <RefreshCw
               size={12}
-              className={cn(
-                (overviewQuery.isFetching || healthQuery.isFetching || activityQuery.isFetching) && 'animate-spin',
-              )}
+              className={cn(isRefreshing && 'animate-spin')}
             />
             更新
           </button>

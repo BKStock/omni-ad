@@ -30,6 +30,7 @@ import {
 import { cn } from '@/lib/utils';
 import { trpc } from '@/lib/trpc';
 import { ExportButton } from '@/app/components/export-button';
+import { getCampaigns, createCampaign as engineCreateCampaign, type Campaign as EngineCampaign } from '@/lib/engine-client';
 
 // ============================================================
 // Types
@@ -1538,11 +1539,39 @@ export default function CampaignsPage(): React.ReactElement {
   const pauseMutation = trpc.campaigns.pause.useMutation();
   const resumeMutation = trpc.campaigns.resume.useMutation();
 
-  const campaigns: Campaign[] = campaignsQuery.error
-    ? MOCK_CAMPAIGNS
-    : (campaignsQuery.data as Campaign[] | undefined) ?? MOCK_CAMPAIGNS;
+  // Engine API state
+  const [engineCampaigns, setEngineCampaigns] = useState<Campaign[] | null>(null);
+  const [engineLoading, setEngineLoading] = useState(true);
 
-  const isLoading = campaignsQuery.isLoading && !campaignsQuery.error;
+  useEffect(() => {
+    getCampaigns()
+      .then((res) => {
+        const list = (res.campaigns ?? res.data ?? res.items ?? []) as EngineCampaign[];
+        if (list.length > 0) {
+          const mapped: Campaign[] = list.map((c) => ({
+            id: c.id,
+            name: c.name,
+            status: (c.status ?? 'draft') as CampaignStatus,
+            platforms: (c.platforms ?? ['meta']) as Platform[],
+            budget: c.budget ?? { total: 0, currency: 'JPY' },
+            roas: c.roas ?? 0,
+            updatedAt: c.updatedAt ?? new Date().toISOString(),
+            objective: (c.objective ?? 'conversion') as Objective,
+          }));
+          setEngineCampaigns(mapped);
+        }
+      })
+      .catch(() => { /* use mock */ })
+      .finally(() => setEngineLoading(false));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const campaigns: Campaign[] = engineCampaigns
+    ?? (campaignsQuery.error
+      ? MOCK_CAMPAIGNS
+      : (campaignsQuery.data as Campaign[] | undefined) ?? MOCK_CAMPAIGNS);
+
+  const isLoading = engineLoading && !engineCampaigns && campaignsQuery.isLoading && !campaignsQuery.error;
 
   // Apply filters
   const filteredCampaigns = campaigns.filter((c) => {
