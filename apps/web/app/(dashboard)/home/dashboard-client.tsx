@@ -717,32 +717,32 @@ export function DashboardClient(): React.ReactElement {
           label: '総広告費（今日）',
           value: engineSummary.total_spend != null
             ? new Intl.NumberFormat('ja-JP', { style: 'currency', currency: 'JPY' }).format(engineSummary.total_spend)
-            : MOCK_KPI[0].value,
-          icon: MOCK_KPI[0].icon,
+            : MOCK_KPI[0]!.value,
+          icon: MOCK_KPI[0]!.icon,
         },
         {
           label: '総収益（今日）',
           value: engineSummary.total_revenue != null
             ? new Intl.NumberFormat('ja-JP', { style: 'currency', currency: 'JPY' }).format(engineSummary.total_revenue)
-            : MOCK_KPI[1].value,
-          icon: MOCK_KPI[1].icon,
+            : MOCK_KPI[1]!.value,
+          icon: MOCK_KPI[1]!.icon,
         },
         {
           label: '総ROAS',
           value: engineSummary.total_roas != null
             ? `${Number(engineSummary.total_roas).toFixed(2)}x`
-            : MOCK_KPI[2].value,
-          icon: MOCK_KPI[2].icon,
+            : MOCK_KPI[2]!.value,
+          icon: MOCK_KPI[2]!.icon,
         },
         {
           label: 'アクティブキャンペーン',
           value: engineSummary.active_campaigns != null
             ? String(engineSummary.active_campaigns)
-            : MOCK_KPI[3].value,
+            : MOCK_KPI[3]!.value,
           subLabel: engineSummary.total_campaigns != null
             ? `/ ${engineSummary.total_campaigns} キャンペーン`
-            : MOCK_KPI[3].subLabel,
-          icon: MOCK_KPI[3].icon,
+            : MOCK_KPI[3]!.subLabel,
+          icon: MOCK_KPI[3]!.icon,
         },
       ]
     : null;
