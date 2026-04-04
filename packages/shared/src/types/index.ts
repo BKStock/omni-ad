@@ -31,6 +31,8 @@ export type {
   Creative,
   CreativeVariant,
   PlatformCreativeSpecs,
+  VideoScene,
+  VideoScript,
 } from './creative.js';
 
 export type {

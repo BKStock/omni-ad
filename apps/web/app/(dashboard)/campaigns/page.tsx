@@ -30,7 +30,7 @@ import {
 import { cn } from '@/lib/utils';
 import { trpc } from '@/lib/trpc';
 import { ExportButton } from '@/app/components/export-button';
-import { getCampaigns, createCampaign as engineCreateCampaign, type Campaign as EngineCampaign } from '@/lib/engine-client';
+import { getCampaigns, type Campaign as EngineCampaign } from '@/lib/engine-client';
 
 // ============================================================
 // Types

@@ -1,5 +1,23 @@
 import { type Platform } from './platform.js';
 
+export interface VideoScene {
+  order: number;
+  duration: number;
+  description: string;
+  textOverlay?: string;
+  transition: 'cut' | 'fade' | 'slide' | 'zoom';
+  visualStyle: 'product-focus' | 'lifestyle' | 'testimonial' | 'text-heavy';
+}
+
+export interface VideoScript {
+  title: string;
+  duration: number;
+  scenes: VideoScene[];
+  voiceover: { text: string; language: string; style: string };
+  music: { mood: string; tempo: string };
+  callToAction: { text: string; position: string };
+}
+
 export type CreativeType = 'text' | 'image' | 'video' | 'carousel';
 
 export interface CreativeContent {

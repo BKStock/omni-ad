@@ -12,6 +12,7 @@ export const QUEUE_NAMES = {
   RULES_EVALUATION: 'rules-evaluation',
   AI_AUTOPILOT: 'ai-autopilot',
   COMPETITOR_MONITOR: 'competitor-monitor',
+  CREATIVE_OPTIMIZATION: 'creative-optimization',
 } as const;
 
 export type QueueName = (typeof QUEUE_NAMES)[keyof typeof QUEUE_NAMES];
@@ -151,6 +152,26 @@ export const QUEUE_CONFIGS: Record<QueueName, QueueConfig> = {
       backoff: { type: 'exponential', delay: 30_000 },
       removeOnComplete: { count: 200 },
       removeOnFail: { count: 500 },
+    },
+  },
+  /**
+   * creative-optimization キュー
+   * Jobs:
+   *   evaluate-variants  — バリアントパフォーマンス確認・バンディットアーム更新
+   *   kill-losers        — 低パフォーマンスバリアント停止
+   *   scale-winners      — 勝者への予算配分増加
+   *   generate-next-gen  — 勝ちパターンから新バリアント生成
+   */
+  [QUEUE_NAMES.CREATIVE_OPTIMIZATION]: {
+    name: QUEUE_NAMES.CREATIVE_OPTIMIZATION,
+    options: {},
+    // Serialized: bandit state updates must not race each other
+    concurrency: 1,
+    defaultJobOptions: {
+      attempts: 3,
+      backoff: { type: 'exponential', delay: 15_000 },
+      removeOnComplete: { count: 500 },
+      removeOnFail: { count: 1000 },
     },
   },
 };

@@ -23,6 +23,8 @@ export type {
   Creative,
   CreativeVariant,
   PlatformCreativeSpecs,
+  VideoScene,
+  VideoScript,
   AudienceRule,
   AudienceDefinition,
   AudienceSegment,
