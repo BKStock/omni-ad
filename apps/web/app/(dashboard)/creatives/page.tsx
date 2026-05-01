@@ -7,7 +7,7 @@ import {
   BrainCircuit,
   ChevronDown,
   FileVideo,
-  Image,
+  Image as ImageIcon,
   Loader2,
   Sparkles,
   Star,
@@ -122,7 +122,7 @@ function CreativeCard({
     >
       {/* Thumbnail area */}
       <div className="flex h-40 items-center justify-center rounded-t-lg bg-muted/50">
-        <Image size={40} className="text-muted-foreground/30" />
+        <ImageIcon size={40} className="text-muted-foreground/30" />
       </div>
       <div className="p-4">
         <div className="flex items-start justify-between gap-2">
@@ -168,7 +168,7 @@ function CreativeDetail({ creative, onClose }: CreativeDetailProps): React.React
         <div className="p-6 space-y-4">
           {/* Preview */}
           <div className="flex h-48 items-center justify-center rounded-lg bg-muted/50">
-            <Image size={64} className="text-muted-foreground/30" />
+            <ImageIcon size={64} className="text-muted-foreground/30" />
           </div>
 
           {/* Info */}
@@ -722,7 +722,7 @@ function FileUploadSection({
                 ) : file.type.startsWith('video/') ? (
                   <FileVideo size={20} className="text-muted-foreground/50" />
                 ) : (
-                  <Image size={20} className="text-muted-foreground/50" />
+                  <ImageIcon size={20} className="text-muted-foreground/50" />
                 )}
               </div>
 

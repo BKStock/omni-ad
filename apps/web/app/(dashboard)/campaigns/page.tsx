@@ -10,7 +10,7 @@ import {
   Edit3,
   FolderKanban,
   Globe,
-  Image,
+  Image as ImageIcon,
   Link2,
   Loader2,
   Monitor,
@@ -126,7 +126,7 @@ const CAMPAIGN_TABS: { label: string; icon: React.ReactNode }[] = [
   { label: '基本情報', icon: <Globe size={14} /> },
   { label: 'コンバージョン設定', icon: <Target size={14} /> },
   { label: 'ターゲティング', icon: <Users size={14} /> },
-  { label: 'クリエイティブ', icon: <Image size={14} /> },
+  { label: 'クリエイティブ', icon: <ImageIcon size={14} /> },
   { label: 'プラットフォーム', icon: <Sliders size={14} /> },
 ];
 
@@ -1074,7 +1074,7 @@ function CreateCampaignModal({ open, onClose }: CreateCampaignModalProps): React
                         )}
                       >
                         <div className="flex h-20 items-center justify-center rounded-md bg-muted/50">
-                          <Image size={24} className="text-muted-foreground/30" />
+                          <ImageIcon size={24} className="text-muted-foreground/30" />
                         </div>
                         <p className="mt-1.5 text-xs font-medium text-foreground line-clamp-1">
                           {creative.name}
@@ -1563,7 +1563,6 @@ export default function CampaignsPage(): React.ReactElement {
       })
       .catch(() => { /* use mock */ })
       .finally(() => setEngineLoading(false));
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const campaigns: Campaign[] = engineCampaigns

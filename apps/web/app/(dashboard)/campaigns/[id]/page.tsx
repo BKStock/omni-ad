@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import {
   ArrowLeft,
@@ -8,7 +9,7 @@ import {
   Copy,
   Edit3,
   Eye,
-  Image,
+  Image as ImageIcon,
   Monitor,
   MousePointerClick,
   Pause,
@@ -656,7 +657,7 @@ function CreativesTab(): React.ReactElement {
           <div key={creative.id} className="rounded-lg border border-border bg-card p-4 transition-shadow hover:shadow-md">
             {/* Thumbnail placeholder */}
             <div className="mb-3 flex h-36 items-center justify-center rounded-md bg-muted/50">
-              <Image size={32} className="text-muted-foreground/40" />
+              <ImageIcon size={32} className="text-muted-foreground/40" />
             </div>
             <h4 className="text-sm font-medium text-foreground">{creative.headline}</h4>
             <div className="mt-2 flex items-center justify-between">
@@ -832,10 +833,10 @@ export default function CampaignDetailPage(): React.ReactElement {
     <div className="space-y-6">
       {/* Breadcrumb */}
       <nav className="flex items-center gap-1 text-sm text-muted-foreground" aria-label="パンくずリスト">
-        <a href="/campaigns" className="flex items-center gap-1 transition-colors hover:text-foreground">
+        <Link href="/campaigns" className="flex items-center gap-1 transition-colors hover:text-foreground">
           <ArrowLeft size={14} />
           キャンペーン
-        </a>
+        </Link>
         <ChevronRight size={14} />
         <span className="font-medium text-foreground">{campaign.name}</span>
       </nav>

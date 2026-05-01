@@ -707,7 +707,6 @@ export function DashboardClient(): React.ReactElement {
 
   useEffect(() => {
     void fetchEngineData();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Build KPI data from engine summary or fall back to mock

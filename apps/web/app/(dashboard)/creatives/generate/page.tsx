@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { ChevronDown, Image, Loader2, Sparkles, Star } from 'lucide-react';
+import { ChevronDown, Image as ImageIcon, Loader2, Sparkles, Star } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 // -- Types --
@@ -353,7 +353,7 @@ export default function GeneratePage(): React.ReactElement {
               disabled={!isFormValid || imageLoading}
               className="inline-flex flex-1 items-center justify-center gap-2 rounded-md border border-border bg-background px-4 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-accent focus:outline-none focus:ring-2 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {imageLoading ? <Loader2 size={15} className="animate-spin" /> : <Image size={15} />}
+              {imageLoading ? <Loader2 size={15} className="animate-spin" /> : <ImageIcon size={15} />}
               画像生成 (4パターン)
             </button>
           </div>
