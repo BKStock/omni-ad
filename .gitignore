@@ -41,3 +41,8 @@ docker-compose.override.yml
 # OS
 Thumbs.db
 .vercel
+
+# Local notes (BK personal)
+CLAUDE.local.md
+TODO.md
+
